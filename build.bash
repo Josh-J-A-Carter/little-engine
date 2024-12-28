@@ -1,0 +1,1 @@
+find | grep ".cpp$" | xargs g++ -o prog -lmingw32 -lSDL2main -lSDL2
