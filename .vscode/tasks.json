@@ -9,7 +9,11 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-I",
+                "glad/include",
+                "-I",
+                "include"
             ],
             "options": {
                 "cwd": "${fileDirname}"
