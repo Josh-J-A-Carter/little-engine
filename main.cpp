@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <SDL2/SDL.h>
 #include "glad/glad.h"
 
@@ -16,6 +18,29 @@ GLuint g_vertex_array_object {};
 GLuint g_vertex_buffer_object {};
 
 GLuint g_graphics_pipeline_program {};
+
+std::string load_from_file(const std::string& file_name) {
+    std::string result {};
+
+    std::string line {};
+
+    std::ifstream file { file_name };
+
+    // Make sure the file actually exists
+    if (file.is_open() == false) {
+        std::cerr << "Fatal: unable to find file \"" << file_name << "\"." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    while (std::getline(file, line)) {
+        result.append(line)
+              .append("\n");
+    }
+
+    file.close();
+
+    return result;
+}
 
 void display_gl_version_info() {
     std::cerr << glGetString(GL_VENDOR) << std::endl;
@@ -101,25 +126,10 @@ void vertex_specification() {
 
 }
 
-const std::string g_vertex_shader = R"(
-    #version 410 core
-    in vec4 position;
-    void main() {
-        gl_Position = vec4(position.x, position.y, position.z, position.w);
-    }
-)";
-
-const std::string g_fragment_shader = R"(
-    #version 410 core
-    out vec4 color;
-    void main() {
-        color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    }
-)";
-
 GLuint compile_shader(GLuint type, std::string source_code) {
     GLuint shader_object {};
 
+    // Make sure the shader is of an expected type
     if (type == GL_VERTEX_SHADER) {
         shader_object = glCreateShader(type);
     }
@@ -133,10 +143,28 @@ GLuint compile_shader(GLuint type, std::string source_code) {
         exit(EXIT_FAILURE);
     }
 
+    // Compile
     const char* source_array = source_code.c_str();
 
     glShaderSource(shader_object, 1, &source_array, nullptr);
     glCompileShader(shader_object);
+
+    // Handle compilation errors
+    GLint status {};
+    glGetShaderiv(shader_object, GL_COMPILE_STATUS, &status);
+
+    if (status == GL_FALSE) {
+        GLint length;
+        glGetShaderiv(shader_object, GL_INFO_LOG_LENGTH, &length);
+        char* error_msg = new char[length];
+        glGetShaderInfoLog(shader_object, length, &length, error_msg);
+        
+        std::string shader_type = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
+
+        std::cerr << "Fatal: compilation error in " << shader_type << " shader." << std::endl;
+        std::cerr << "Message:   " << error_msg << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     return shader_object;
 }
@@ -144,13 +172,19 @@ GLuint compile_shader(GLuint type, std::string source_code) {
 void create_graphics_pipeline() {
     GLuint program_object = glCreateProgram();
 
+    // Compile
+    const std::string g_vertex_shader { load_from_file("shaders/vertex_shader.glsl") };
+    const std::string g_fragment_shader { load_from_file("shaders/fragment_shader.glsl") };
+
     GLuint compiled_vertex_shader = compile_shader(GL_VERTEX_SHADER, g_vertex_shader);
     GLuint compiled_fragment_shader = compile_shader(GL_FRAGMENT_SHADER, g_fragment_shader);
 
+    // Link
     glAttachShader(program_object, compiled_vertex_shader);
     glAttachShader(program_object, compiled_fragment_shader);
     glLinkProgram(program_object);
 
+    // Handle linking errors
     GLint status {};
     glValidateProgram(program_object);
     glGetProgramiv(program_object, GL_VALIDATE_STATUS, &status);
@@ -159,6 +193,12 @@ void create_graphics_pipeline() {
         std::cerr << "Fatal: Graphics pipeline failed to be established; the program object was invalid." << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    // Clean up shader programs
+    glDetachShader(program_object, compiled_vertex_shader);
+    glDetachShader(program_object, compiled_fragment_shader);
+    glDeleteShader(compiled_vertex_shader);
+    glDeleteShader(compiled_fragment_shader);
 
     g_graphics_pipeline_program = program_object;
 }
@@ -190,6 +230,9 @@ void draw() {
     glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_object);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // Cleanup - only actually necessary if we have multiple pipelines
+    glUseProgram(0);
 }
 
 void loop() {
@@ -215,9 +258,9 @@ void cleanup() {
 int main(int argv, char** args)  {
     setup();
 
-    vertex_specification();
-
     create_graphics_pipeline();
+
+    vertex_specification();
 
     loop();
 
