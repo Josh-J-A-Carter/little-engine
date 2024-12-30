@@ -12,6 +12,12 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
+#include "camera.h"
 
 // #define NDEBUG
 
@@ -26,9 +32,11 @@ GLuint g_index_buffer_object {};
 
 GLuint g_graphics_pipeline_program {};
 
-float g_world_offset {};
+float g_world_offset { -0.2f };
 std::chrono::high_resolution_clock::time_point g_program_time_start;
 float g_program_time {};
+
+camera g_camera {};
 
 
 void clear_gl_errors() {
@@ -252,20 +260,34 @@ void create_graphics_pipeline() {
 }
 
 bool input() {
+    // static int mouse_x { g_window_width / 2 };
+    // static int mouse_y { g_window_height / 2 };
+    SDL_WarpMouseInWindow(g_window, g_window_width / 2, g_window_height / 2);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+
     SDL_Event event;
 
     while (SDL_PollEvent(&event) != 0) {
         if (event.type == SDL_QUIT) return true;
+
+        if (event.type == SDL_MOUSEMOTION) {
+            // mouse_x += event.motion.xrel;
+            // mouse_y += event.motion.yrel;
+
+            g_camera.rotate({ event.motion.xrel, event.motion.yrel });
+        }
     }
 
     const Uint8* state = SDL_GetKeyboardState(nullptr);
-    if (state[SDL_SCANCODE_UP]) {
-        g_world_offset += 0.001f;
-    }
+    // std::cout << "left: " << glm::to_string(g_camera.left()) << " forward: " << glm::to_string(g_camera.forward()) << "\n";
 
-    if (state[SDL_SCANCODE_DOWN]) {
-        g_world_offset -= 0.001f;
-    }
+    float speed { 0.001f };
+
+    if (state[SDL_SCANCODE_W]) g_camera.translate(g_camera.forward() * speed);
+    else if (state[SDL_SCANCODE_S]) g_camera.translate(g_camera.forward() * -speed);
+
+    if (state[SDL_SCANCODE_A]) g_camera.translate(g_camera.left() * speed);
+    else if (state[SDL_SCANCODE_D]) g_camera.translate(g_camera.left() * -speed);
 
     std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> program_time = now - g_program_time_start;
@@ -285,19 +307,27 @@ void predraw() {
 
     glUseProgram(g_graphics_pipeline_program);
 
-    // Identity matrix -> translate up by offset -> rotate
-    glm::mat4 worldspace { 0.5f };
-    worldspace = glm::translate(worldspace, glm::vec3(0, g_world_offset, 0));
-    worldspace = glm::rotate(worldspace, glm::radians(g_program_time * 50), glm::vec3(0, 1, 0));
+    // Model matrix
+    glm::mat4 model_mat { 0.5f };
+    // model_mat = glm::translate(model_mat, glm::vec3(0, 0, -g_world_offset));
+    model_mat = glm::rotate(model_mat, glm::radians(g_program_time * 50), glm::vec3(0, 1, 0));
 
-    GLint location = glGetUniformLocation(g_graphics_pipeline_program, "u_model_matrix");
-    glUniformMatrix4fv(location, 1, GL_FALSE, &worldspace[0][0]);
+    GLint model_mat_location = glGetUniformLocation(g_graphics_pipeline_program, "u_model_matrix");
+    glUniformMatrix4fv(model_mat_location, 1, GL_FALSE, &model_mat[0][0]);
+
+    // View matrix
+    glm::mat4 view_mat { g_camera.get_view_matrix() };
+    GLint view_mat_location = glGetUniformLocation(g_graphics_pipeline_program, "u_view_matrix");
+    glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, &view_mat[0][0]);
+
+    // Perspective matrix
+    glm::mat4 pers_mat { g_camera.get_perspective_matrix() };
+    GLint pers_mat_location = glGetUniformLocation(g_graphics_pipeline_program, "u_pers_matrix");
+    glUniformMatrix4fv(pers_mat_location, 1, GL_FALSE, &pers_mat[0][0]);
 }
 
 void draw() {
     glBindVertexArray(g_vertex_array_object);
-    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_object);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_object);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*) 0);
 
@@ -331,6 +361,9 @@ int main(int argv, char** args)  {
     create_graphics_pipeline();
 
     vertex_specification();
+
+    // Set up the camera
+    g_camera = { { 0, 0, 0 }, { 0, 0, -1 }, { 0, 1, 0 }, { g_window_width / 2, g_window_width / 2 } };
 
     loop();
 
