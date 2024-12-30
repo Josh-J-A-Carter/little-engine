@@ -94,36 +94,42 @@ void setup() {
 }
 
 void vertex_specification() {
-    const std::vector<GLfloat> vertex_positions {
+    const std::vector<GLfloat> vertex_data {
+        //v1
         -0.8f, -0.8f, 0.0f,
+        1.0f, 0.0f, 0.0f, 1.0f,
+        //v2
         0.8f, -0.8f, 0.0f,
-        0.0f, 0.8f, 0.0f
+        0.0f, 1.0f, 0.0f, 1.0f,
+        //v3
+        0.0f, 0.8f, 0.0f,
+        0.0f, 0.0f, 1.0f, 1.0f
     };
 
     // VAO (meta data)
     glGenVertexArrays(1, &g_vertex_array_object);
     glBindVertexArray(g_vertex_array_object);
 
-    // VBO (raw data)
+    //// VBO (raw data)
     glGenBuffers(1, &g_vertex_buffer_object);
     glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_object);
-    glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(GLfloat), vertex_positions.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_data.size() * sizeof(GLfloat), vertex_data.data(), GL_STATIC_DRAW);
+    
+    size_t stride = sizeof(GLfloat) * (3 + 4);
+    GLvoid* pos_offset = (GLvoid*) 0;
+    GLvoid* col_offset = (GLvoid*) (3 * sizeof(GLfloat));
 
-    // Set up the VAO's zeroth attribute to specify that it is position data
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-                        0,        //zeroth attribute
-                        3,        // 3 components (x, y, z)
-                        GL_FLOAT,
-                        GL_FALSE, // normalised
-                        0,        // no space between attributes
-                        nullptr
-                    );
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, pos_offset);
 
-    // Cleanup VAO
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, col_offset);
+
+    // Cleanup
     glBindVertexArray(0);
-    glDisableVertexAttribArray(0);
 
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 }
 
 GLuint compile_shader(GLuint type, std::string source_code) {
