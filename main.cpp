@@ -16,8 +16,23 @@ SDL_GLContext g_openGL_context {};
 
 GLuint g_vertex_array_object {};
 GLuint g_vertex_buffer_object {};
+GLuint g_index_buffer_object {};
 
 GLuint g_graphics_pipeline_program {};
+
+
+void clear_gl_errors() {
+    while (glGetError() != GL_NO_ERROR) {}
+}
+
+void process_gl_errors(const char* fn_call, int line_no) {
+    GLenum code = glGetError();
+    if (code == GL_NO_ERROR) return;
+
+    std::cerr << "OpenGL error  " << code << "  at line  " << line_no << ", in function call " << fn_call << std::endl;
+}
+
+#define gl_error_check(fn_call) clear_gl_errors(); fn_call; process_gl_errors(#fn_call, __LINE__);
 
 std::string load_from_file(const std::string& file_name) {
     std::string result {};
@@ -95,15 +110,25 @@ void setup() {
 
 void vertex_specification() {
     const std::vector<GLfloat> vertex_data {
-        //v1
-        -0.8f, -0.8f, 0.0f,
+        // v0
+        -0.5f, -0.5f, 0.0f,
         1.0f, 0.0f, 0.0f, 1.0f,
-        //v2
-        0.8f, -0.8f, 0.0f,
+        // v1
+        0.5f, -0.5f, 0.0f,
         0.0f, 1.0f, 0.0f, 1.0f,
-        //v3
-        0.0f, 0.8f, 0.0f,
-        0.0f, 0.0f, 1.0f, 1.0f
+        // v2
+        0.5f, 0.5f, 0.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+        // v3
+        -0.5f, 0.5f, 0.0f,
+        0.0f, 0.0f, 1.0f, 1.0f,
+    };
+
+    const std::vector<GLuint> index_data {
+        // t1
+        0, 1, 3,
+        // t2
+        1, 2, 3
     };
 
     // VAO (meta data)
@@ -124,6 +149,11 @@ void vertex_specification() {
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, col_offset);
+
+    // IBO (indices for each triangle)
+    glGenBuffers(1, &g_index_buffer_object);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_object);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_data.size() * sizeof(GLuint), index_data.data(), GL_STATIC_DRAW);
 
     // Cleanup
     glBindVertexArray(0);
@@ -234,8 +264,9 @@ void predraw() {
 void draw() {
     glBindVertexArray(g_vertex_array_object);
     glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_object);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_object);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*) 0);
 
     // Cleanup - only actually necessary if we have multiple pipelines
     glUseProgram(0);
