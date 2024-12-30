@@ -4,8 +4,14 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <chrono>
+
 #include <SDL2/SDL.h>
-#include "glad/glad.h"
+
+#include <glad/glad.h>
+
+#include <glm/mat4x4.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 // #define NDEBUG
 
@@ -19,6 +25,10 @@ GLuint g_vertex_buffer_object {};
 GLuint g_index_buffer_object {};
 
 GLuint g_graphics_pipeline_program {};
+
+float g_world_offset {};
+std::chrono::high_resolution_clock::time_point g_program_time_start;
+float g_program_time {};
 
 
 void clear_gl_errors() {
@@ -65,6 +75,8 @@ void display_gl_version_info() {
 }
 
 void setup() {
+    g_program_time_start = std::chrono::high_resolution_clock::now();
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0)  {
         std::cerr << "Fatal: Could not initialise SDL2; aborting program." << std::endl;
         exit(EXIT_FAILURE);
@@ -246,6 +258,19 @@ bool input() {
         if (event.type == SDL_QUIT) return true;
     }
 
+    const Uint8* state = SDL_GetKeyboardState(nullptr);
+    if (state[SDL_SCANCODE_UP]) {
+        g_world_offset += 0.001f;
+    }
+
+    if (state[SDL_SCANCODE_DOWN]) {
+        g_world_offset -= 0.001f;
+    }
+
+    std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> program_time = now - g_program_time_start;
+    g_program_time = program_time.count();
+
     return false;
 }
 
@@ -259,6 +284,14 @@ void predraw() {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     glUseProgram(g_graphics_pipeline_program);
+
+    // Identity matrix -> translate up by offset -> rotate
+    glm::mat4 worldspace { 0.5f };
+    worldspace = glm::translate(worldspace, glm::vec3(0, g_world_offset, 0));
+    worldspace = glm::rotate(worldspace, glm::radians(g_program_time * 50), glm::vec3(0, 1, 0));
+
+    GLint location = glGetUniformLocation(g_graphics_pipeline_program, "u_model_matrix");
+    glUniformMatrix4fv(location, 1, GL_FALSE, &worldspace[0][0]);
 }
 
 void draw() {
