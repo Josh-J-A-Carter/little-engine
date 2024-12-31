@@ -1,0 +1,81 @@
+#include <iostream>
+
+#include "utilities.h"
+#include "application.h"
+#include "pipeline.h"
+
+void application::create() {
+    m_program_time_start = std::chrono::high_resolution_clock::now();
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)  {
+        std::cerr << "Fatal: Could not initialise SDL2; aborting program." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, true);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+    SDL_DisplayMode DM;
+    SDL_GetCurrentDisplayMode(0, &DM);
+    int screen_width = DM.w;
+    int screen_height = DM.h;
+
+    m_window = SDL_CreateWindow("Hello, OpenGL!",
+                                (screen_width - m_window_width) / 2, (screen_height - m_window_height) / 2,
+                                m_window_width, m_window_height, SDL_WINDOW_OPENGL);
+
+    if (!m_window) {
+        std::cerr << "Fatal: Could not create SDL window; aborting program." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    m_openGL_context = SDL_GL_CreateContext(m_window);
+
+    if (!m_openGL_context) {
+        std::cerr << "Fatal: Could not create OpenGL context; aborting program." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
+        std::cerr << "Fatal: GLAD was unable to be initialised; aborting program." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+#ifndef NDEBUG
+    display_gl_version_info();
+#endif
+
+    m_pipeline.create();
+}
+
+void application::destroy() {
+    SDL_DestroyWindow(m_window);
+
+    SDL_Quit();
+}
+
+float application::program_time() {
+    std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> program_time = now - m_program_time_start;
+    return program_time.count();
+}
+
+int application::width() {
+    return m_window_width;
+}
+
+int application::height() {
+    return m_window_height;
+}
+
+SDL_Window* application::window() {
+    return m_window;
+}
+
+pipeline application::pipeline() {
+    return m_pipeline;
+}
