@@ -72,6 +72,10 @@ int application::height() {
     return m_window_height;
 }
 
+float application::aspect() {
+    return static_cast<float>(m_window_width) / m_window_height;
+}
+
 SDL_Window* application::window() {
     return m_window;
 }

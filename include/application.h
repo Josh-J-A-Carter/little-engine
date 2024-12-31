@@ -29,6 +29,8 @@ struct application {
 
         int height();
 
+        float aspect();
+
         SDL_Window* window();
 
         pipeline pipeline();

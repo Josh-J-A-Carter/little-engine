@@ -12,6 +12,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
+#include "utilities.h"
 #include "application.h"
 #include "pipeline.h"
 #include "camera.h"
@@ -26,15 +27,11 @@ std::vector<mesh> g_meshes {};
 
 
 void load_meshes() {
-    std::vector<GLfloat> vertices {
-        -0.5f, -0.5f, 0.0f,
-        1.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.0f,
-        1.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0.0f,
-        1.0f, 1.0f, 0.0f, 1.0f,
+    std::vector<vertex> vertices {
+        { glm::vec3{ -0.5f, -0.5f, 0.0f },     glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f } },
+        { glm::vec3{ 0.5f, -0.5f, 0.0f },      glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
+        { glm::vec3{ 0.5f, 0.5f, 0.0f },       glm::vec4{ 1.0f, 0.0f, 1.0f, 1.0f } },
+        { glm::vec3{ -0.5f, 0.5f, 0.0f },      glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f } }
     };
 
     std::vector<GLuint> indices {
@@ -44,10 +41,56 @@ void load_meshes() {
         1, 2, 3
     };
 
-    mesh mesh { vertices, indices };
-    mesh.m_translation = { 0, 0, -2 };
+    mesh mesh1 { vertices, indices };
+    mesh1.m_translation = { -2, 0, -2 };
 
-    g_meshes.push_back(mesh);
+    mesh mesh2 { vertices, indices };
+    mesh2.m_translation = { 2, 0, -2 };
+
+    g_meshes.push_back(mesh1);
+    g_meshes.push_back(mesh2);
+
+    std::vector<vertex> cube_verts {
+        // front face
+        { glm::vec3{ -0.5f, -0.5f, 0.0f },       glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f } },
+        { glm::vec3{ 0.5f, -0.5f, 0.0f },        glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
+        { glm::vec3{ 0.5f, 0.5f, 0.0f },         glm::vec4{ 1.0f, 0.0f, 1.0f, 1.0f } },
+        { glm::vec3{ -0.5f, 0.5f, 0.0f },        glm::vec4{ 0.0f, 1.0f, 1.0f, 1.0f } },
+
+        // back face
+        { glm::vec3{ -0.5f, -0.5f, -1.0f },      glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f } },
+        { glm::vec3{ 0.5f, -0.5f, -1.0f  },      glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
+        { glm::vec3{ 0.5f, 0.5f, -1.0f  },       glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f } },
+        { glm::vec3{ -0.5f, 0.5f, -1.0f  },      glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f } },
+
+        // don't need any more vertices - just need to specify triangles in index buffer
+    };
+
+    std::vector<GLuint> cube_indices {
+        // front
+        0, 1, 3,
+        1, 2, 3,
+        // back
+        4, 5, 7,
+        5, 6, 7,
+        // top
+        3, 2, 7,
+        2, 6, 7,
+        // bottom
+        0, 1, 4,
+        1, 5, 4,
+        // right
+        1, 5, 6,
+        1, 6, 2,
+        // left
+        0, 4, 7,
+        0, 7, 3
+    };
+
+    mesh cube { cube_verts, cube_indices };
+    cube.m_translation = { 0, 0, -3 };
+
+    g_meshes.push_back(cube);
 }
 
 bool input() {
@@ -98,6 +141,7 @@ bool input() {
 }
 
 void draw() {
+    // Resetting stuff
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
@@ -106,8 +150,8 @@ void draw() {
     glClearColor(0.5f, 0.7f, 0.4f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GLuint program = g_app.pipeline().program();
 
+    GLuint program = g_app.pipeline().program();
     glUseProgram(program);
 
     //// ------ Camera Matrices ------
@@ -125,7 +169,7 @@ void draw() {
     //// -------- Mesh Data ---------
 
     for (mesh& mesh : g_meshes) {
-        mesh.m_y_rotation += 0.1f;
+        mesh.m_y_rotation += 0.01f;
 
         // Model matrix
         glm::mat4 model_mat { mesh.model_matrix() };
@@ -133,9 +177,8 @@ void draw() {
         glUniformMatrix4fv(model_mat_location, 1, GL_FALSE, &model_mat[0][0]);
 
         glBindVertexArray(mesh.m_vertex_array_object);
+        glDrawElements(GL_TRIANGLES, mesh.vert_count(), GL_UNSIGNED_INT, (GLvoid*) 0);
     }
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*) 0);
 
     // Cleanup - only actually necessary if we have multiple pipelines
     glUseProgram(0);
@@ -159,7 +202,9 @@ int main(int argv, char** args)  {
     load_meshes();
 
     // Set up the camera
-    g_camera = { { 0, 0, 0 }, { 0, 0, -1 }, { 0, 1, 0 }, { g_app.width() / 2, g_app.height() / 2 } };
+    g_camera = camera().init_pos({ 0, 0, 0 })
+                       .init_mouse({ g_app.width() / 2, g_app.height() / 2 })
+                       .init_aspect({ g_app.aspect() });
 
     loop();
 

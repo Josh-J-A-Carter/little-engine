@@ -1,7 +1,9 @@
-#include "mesh.h"
-
 #include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
+
+#include "mesh.h"
+
+#include "vertex.h"
 
 
 glm::mat4 mesh::model_matrix() {
@@ -19,9 +21,9 @@ void mesh::setup() {
     //// VBO (raw data)
     glGenBuffers(1, &m_vertex_buffer_object);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer_object);
-    glBufferData(GL_ARRAY_BUFFER, m_vertex_data.size() * sizeof(GLfloat), m_vertex_data.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_vertex_data.size() * sizeof(vertex), m_vertex_data.data(), GL_STATIC_DRAW);
     
-    size_t stride = sizeof(GLfloat) * (3 + 4);
+    size_t stride = sizeof(vertex);
     GLvoid* pos_offset = (GLvoid*) 0;
     GLvoid* col_offset = (GLvoid*) (3 * sizeof(GLfloat));
 
@@ -41,4 +43,8 @@ void mesh::setup() {
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+}
+
+int mesh::vert_count() {
+    return m_index_data.size();
 }

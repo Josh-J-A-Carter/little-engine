@@ -19,11 +19,13 @@ struct camera {
     public:
         camera() {}
 
-        camera(glm::vec3 pos, glm::vec3 forward, glm::vec3 up, glm::vec2 mouse)
-            : m_pos { pos }
-            , m_forward { forward }
-            , m_up { up }
-            , m_mouse { mouse } {}
+        // Builder members, for cascading instantiation
+        camera& init_pos(glm::vec3 pos) { m_pos = pos ; return *this; }
+        camera& init_forward(glm::vec3 forward) { m_forward = forward ; return *this; }
+        camera& init_up(glm::vec3 up) { m_up = up ; return *this; }
+        camera& init_mouse(glm::vec2 mouse) { m_mouse = mouse ; return *this; }
+        camera& init_fov(float fov) { m_fov = fov ; return *this; }
+        camera& init_aspect(float aspect) { m_aspect = aspect ; return *this; }
 
         void translate(glm::vec3 delta);
 
