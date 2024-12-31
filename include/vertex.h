@@ -20,7 +20,7 @@ struct vertex {
         : x { pos.x }
         , y { pos.y }
         , z { pos.z }
-        , r { col.a }
+        , r { col.r }
         , g { col.g }
         , b { col.b }
         , a { col.a }
