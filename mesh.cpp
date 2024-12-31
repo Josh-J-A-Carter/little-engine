@@ -25,13 +25,13 @@ void mesh::setup() {
     
     size_t stride = sizeof(vertex);
     GLvoid* pos_offset = (GLvoid*) 0;
-    GLvoid* col_offset = (GLvoid*) (3 * sizeof(GLfloat));
+    GLvoid* uv_offset = (GLvoid*) (3 * sizeof(GLfloat));
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, pos_offset);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, col_offset);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, uv_offset);
 
     // IBO (indices for each triangle)
     glGenBuffers(1, &m_index_buffer_object);

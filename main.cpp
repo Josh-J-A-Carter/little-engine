@@ -17,6 +17,8 @@
 #include "pipeline.h"
 #include "camera.h"
 #include "mesh.h"
+#include "texture.h"
+
 
 // #define NDEBUG
 
@@ -26,12 +28,18 @@ camera g_camera {};
 std::vector<mesh> g_meshes {};
 
 
-void load_meshes() {
+void load_meshes(const texture& texture) {
+
+    glm::vec2 t00 { 0, 0 };
+    glm::vec2 t01 { 0, 1 };
+    glm::vec2 t10 { 1, 0 };
+    glm::vec2 t11 { 1, 1 };
+
     std::vector<vertex> vertices {
-        { glm::vec3{ -0.5f, -0.5f, 0.0f },     glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f } },
-        { glm::vec3{ 0.5f, -0.5f, 0.0f },      glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-        { glm::vec3{ 0.5f, 0.5f, 0.0f },       glm::vec4{ 1.0f, 0.0f, 1.0f, 1.0f } },
-        { glm::vec3{ -0.5f, 0.5f, 0.0f },      glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f } }
+        { glm::vec3{ -0.5f, -0.5f, 0.0f },     t00 },
+        { glm::vec3{ 0.5f, -0.5f, 0.0f },      t10 },
+        { glm::vec3{ 0.5f, 0.5f, 0.0f },       t11 },
+        { glm::vec3{ -0.5f, 0.5f, 0.0f },      t01 }
     };
 
     std::vector<GLuint> indices {
@@ -41,10 +49,10 @@ void load_meshes() {
         1, 2, 3
     };
 
-    mesh mesh1 { vertices, indices };
+    mesh mesh1 { vertices, indices, texture };
     mesh1.m_translation = { -2, 0, -2 };
 
-    mesh mesh2 { vertices, indices };
+    mesh mesh2 { vertices, indices, texture };
     mesh2.m_translation = { 2, 0, -2 };
 
     g_meshes.push_back(mesh1);
@@ -52,16 +60,16 @@ void load_meshes() {
 
     std::vector<vertex> cube_verts {
         // front face
-        { glm::vec3{ -0.5f, -0.5f, 0.0f },       glm::vec4{ 1.0f, 0.0f, 0.0f, 1.0f } },
-        { glm::vec3{ 0.5f, -0.5f, 0.0f },        glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-        { glm::vec3{ 0.5f, 0.5f, 0.0f },         glm::vec4{ 1.0f, 0.0f, 1.0f, 1.0f } },
-        { glm::vec3{ -0.5f, 0.5f, 0.0f },        glm::vec4{ 0.0f, 1.0f, 1.0f, 1.0f } },
+        { glm::vec3{ -0.5f, -0.5f, 0.0f },       t00 },
+        { glm::vec3{ 0.5f, -0.5f, 0.0f },        t10 },
+        { glm::vec3{ 0.5f, 0.5f, 0.0f },         t11 },
+        { glm::vec3{ -0.5f, 0.5f, 0.0f },        t01 },
 
         // back face
-        { glm::vec3{ -0.5f, -0.5f, -1.0f },      glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f } },
-        { glm::vec3{ 0.5f, -0.5f, -1.0f  },      glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-        { glm::vec3{ 0.5f, 0.5f, -1.0f  },       glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f } },
-        { glm::vec3{ -0.5f, 0.5f, -1.0f  },      glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f } },
+        { glm::vec3{ -0.5f, -0.5f, -1.0f },      t10 },
+        { glm::vec3{ 0.5f, -0.5f, -1.0f  },      t00 },
+        { glm::vec3{ 0.5f, 0.5f, -1.0f  },       t01 },
+        { glm::vec3{ -0.5f, 0.5f, -1.0f  },      t11 },
 
         // don't need any more vertices - just need to specify triangles in index buffer
     };
@@ -87,7 +95,7 @@ void load_meshes() {
         0, 7, 3
     };
 
-    mesh cube { cube_verts, cube_indices };
+    mesh cube { cube_verts, cube_indices, texture };
     cube.m_translation = { 0, 0, -3 };
 
     g_meshes.push_back(cube);
@@ -172,6 +180,10 @@ void draw() {
     GLint pers_mat_location = glGetUniformLocation(program, "u_pers_matrix");
     glUniformMatrix4fv(pers_mat_location, 1, GL_FALSE, &pers_mat[0][0]);
 
+    GLint model_mat_location = glGetUniformLocation(program, "u_model_matrix");
+
+    GLint sampler_location = glGetUniformLocation(program, "u_sampler");
+
     //// -------- Mesh Data ---------
 
     for (mesh& mesh : g_meshes) {
@@ -179,8 +191,10 @@ void draw() {
 
         // Model matrix
         glm::mat4 model_mat { mesh.model_matrix() };
-        GLint model_mat_location = glGetUniformLocation(program, "u_model_matrix");
         glUniformMatrix4fv(model_mat_location, 1, GL_FALSE, &model_mat[0][0]);
+
+        mesh.m_texture.bind(GL_TEXTURE0);
+        glUniform1i(sampler_location, 0);
 
         glBindVertexArray(mesh.m_vertex_array_object);
         glDrawElements(GL_TRIANGLES, mesh.vert_count(), GL_UNSIGNED_INT, (GLvoid*) 0);
@@ -205,7 +219,10 @@ void loop() {
 int main(int argv, char** args)  {
     g_app.create();
 
-    load_meshes();
+    texture brick_texture { GL_TEXTURE_2D, "assets/brick.png" };
+    brick_texture.load();
+
+    load_meshes(brick_texture);
 
     // Set up the camera
     g_camera = camera().init_pos({ 0, 0, 0 })

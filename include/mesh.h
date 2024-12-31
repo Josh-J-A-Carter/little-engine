@@ -8,11 +8,14 @@
 #include <glm/mat4x4.hpp>
 
 #include "vertex.h"
+#include "texture.h"
 
 struct mesh {
     GLuint m_vertex_array_object {};
     GLuint m_vertex_buffer_object {};
     GLuint m_index_buffer_object {};
+
+    const texture& m_texture;
 
     std::vector<vertex> m_vertex_data {};
     std::vector<GLuint> m_index_data {};
@@ -21,13 +24,16 @@ struct mesh {
 
     float m_y_rotation;
 
-    mesh(std::vector<vertex> vertex_data, std::vector<GLuint> index_data)
+    mesh(std::vector<vertex> vertex_data, std::vector<GLuint> index_data, const texture& texture)
         : m_vertex_data { vertex_data }
-        , m_index_data { index_data } {
+        , m_index_data { index_data }
+        , m_texture { texture } {
         setup();
     }
 
     glm::mat4 model_matrix();
+
+    const texture& texture();
 
     int vert_count();
 

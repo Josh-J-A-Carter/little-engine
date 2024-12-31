@@ -11,19 +11,16 @@ struct vertex {
     GLfloat y;
     GLfloat z;
 
-    GLfloat r;
-    GLfloat g;
-    GLfloat b;
-    GLfloat a;
+    GLfloat u;
+    GLfloat v;
 
-    vertex(glm::vec3 pos, glm::vec4 col)
+    vertex(glm::vec3 pos, glm::vec2 uv)
         : x { pos.x }
         , y { pos.y }
         , z { pos.z }
-        , r { col.r }
-        , g { col.g }
-        , b { col.b }
-        , a { col.a }
+
+        , u { uv.x }
+        , v { uv.y }
     {}
 };
 
