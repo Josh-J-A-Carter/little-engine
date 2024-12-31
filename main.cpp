@@ -121,11 +121,16 @@ bool input() {
     if (!escaped) {
         float speed { 0.001f };
 
+        if (state[SDL_SCANCODE_LCTRL]) speed *= 2;
+
         if (state[SDL_SCANCODE_W]) g_camera.translate(g_camera.forward() * speed);
         else if (state[SDL_SCANCODE_S]) g_camera.translate(g_camera.forward() * -speed);
 
         if (state[SDL_SCANCODE_A]) g_camera.translate(g_camera.left() * speed);
         else if (state[SDL_SCANCODE_D]) g_camera.translate(g_camera.left() * -speed);
+
+        if (state[SDL_SCANCODE_SPACE]) g_camera.translate(g_camera.up() * speed);
+        else if (state[SDL_SCANCODE_LSHIFT]) g_camera.translate(g_camera.up() * -speed);
     }
 
     if (state[SDL_SCANCODE_ESCAPE] && !just_pressed_escape) {
@@ -142,8 +147,9 @@ bool input() {
 
 void draw() {
     // Resetting stuff
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
 
     glViewport(0, 0, g_app.width(), g_app.height());
 
@@ -203,8 +209,8 @@ int main(int argv, char** args)  {
 
     // Set up the camera
     g_camera = camera().init_pos({ 0, 0, 0 })
-                       .init_mouse({ g_app.width() / 2, g_app.height() / 2 })
-                       .init_aspect({ g_app.aspect() });
+                       .init_aspect({ g_app.aspect() })
+                       .init_clip(0.1, 20);
 
     loop();
 
