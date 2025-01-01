@@ -16,6 +16,10 @@ struct texture {
             : m_texture_target { texture_target }
             , m_file_name { file_name } {}
 
+        ~texture() {
+            glDeleteTextures(1, &m_texture_object);
+        }
+
         void load();
 
         void bind(GLenum texture_unit) const;

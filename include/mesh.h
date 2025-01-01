@@ -31,9 +31,13 @@ struct mesh {
         setup();
     }
 
-    glm::mat4 model_matrix();
+    ~mesh() {
+        // glDeleteVertexArrays(1, &m_vertex_array_object);
+        // glDeleteBuffers(1, &m_vertex_buffer_object);
+        // glDeleteBuffers(1, &m_index_buffer_object);
+    }
 
-    const texture& texture();
+    glm::mat4 model_matrix();
 
     int vert_count();
 
