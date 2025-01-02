@@ -5,10 +5,15 @@
 
 #include "utilities.h"
 #include "pipeline.h"
+#include "light.h"
+#include "material.h"
 
-
-void pipeline::initialise() {
+void pipeline::initialise(std::vector<shader_src> shaders) {
     m_program = glCreateProgram();
+
+    for (shader_src src : shaders) add_shader(src.type, src.file_name);
+
+    finalise();
 }
 
 void pipeline::enable() {
@@ -63,7 +68,13 @@ GLint pipeline::get_uniform_location(uniform u) {
     if (u == UNIFORM_MODEL_MAT) loc = glGetUniformLocation(m_program, "u_model_matrix");
     else if (u == UNIFORM_VIEW_MAT) loc = glGetUniformLocation(m_program, "u_view_matrix");
     else if (u == UNIFORM_PROJ_MAT) loc = glGetUniformLocation(m_program, "u_proj_matrix");
+
     else if (u == UNIFORM_SAMPLER) loc = glGetUniformLocation(m_program, "u_sampler");
+
+    else if (u == UNIFORM_LIGHT__COLOR) loc = glGetUniformLocation(m_program, "u_light.color");
+    else if (u == UNIFORM_LIGHT__AMBIENT_INTENSITY) loc = glGetUniformLocation(m_program, "u_light.ambient_intensity");
+
+    else if (u == UNIFORM_MATERIAL__AMBIENT_COLOR) loc = glGetUniformLocation(m_program, "u_material.ambient_color");
 
     else {
         std::cerr << "Error - unhandled uniform variant, with code " << u << std::endl;
@@ -77,7 +88,7 @@ GLint pipeline::get_uniform_location(uniform u) {
     return loc;
 }
 
-void pipeline::set_uniform(uniform u, glm::mat4 matrix) {
+void pipeline::set_uniform(uniform u, glm::mat4& matrix) {
     glUniformMatrix4fv(get_uniform_location(u), 1, GL_FALSE, &matrix[0][0]);
 }
 
@@ -85,6 +96,18 @@ void pipeline::set_uniform(uniform u, int input) {
     glUniform1i(get_uniform_location(u), input);
 }
 
+void pipeline::set_uniform(uniform u, light& light) {
+    if (u != UNIFORM_LIGHT) return;
+
+    glUniform3fv(get_uniform_location(UNIFORM_LIGHT__COLOR), 1, &light.color[0]);
+    glUniform1f(get_uniform_location(UNIFORM_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
+}
+
+void pipeline::set_uniform(uniform u, material& material) {
+    if (u != UNIFORM_MATERIAL) return;
+
+    glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__AMBIENT_COLOR), 1, &material.ambient_color[0]);
+}
 
 void pipeline::finalise() {
     glLinkProgram(m_program);

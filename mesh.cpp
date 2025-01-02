@@ -7,7 +7,9 @@
 #include <assimp/postprocess.h>
 
 #include "mesh.h"
+#include "pipeline.h"
 #include "texture.h"
+#include "material.h"
 #include "utilities.h"
 
 #define POSITION_LOCATION  0
@@ -57,6 +59,7 @@ void mesh::load(const std::string& file_name) {
 void mesh::init_from_scene(const aiScene* p_scene, const std::string& file_name) {
     m_meshes.resize(p_scene->mNumMeshes);
     m_textures.resize(p_scene->mNumMaterials);
+    m_materials.resize(p_scene->mNumMaterials);
 
     unsigned int num_vertices = 0;
     unsigned int num_indices = 0;
@@ -154,6 +157,14 @@ void mesh::init_materials(const aiScene* p_scene, const std::string& file_name) 
                 m_textures[i]->load();
             }
         }
+
+        aiColor3D ambient_color { 0, 0, 0 };
+
+        if (p_material->Get(AI_MATKEY_COLOR_AMBIENT, ambient_color) == AI_SUCCESS) {
+            m_materials[i].ambient_color.r = ambient_color.r;
+            m_materials[i].ambient_color.g = ambient_color.g;
+            m_materials[i].ambient_color.b = ambient_color.b;
+        }
     }
 }
 
@@ -201,4 +212,10 @@ void mesh::render() {
 
     // Make sure the VAO is not changed from the outside
     glBindVertexArray(0);
+}
+
+material& mesh::get_ambient_material() {
+    for (material& material : m_materials) {
+        if (material.ambient_color != glm::vec3 { 0, 0, 0 }) return material;
+    }
 }

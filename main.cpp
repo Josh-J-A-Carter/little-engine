@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "mesh.h"
 #include "texture.h"
+#include "light.h"
 
 
 // #define NDEBUG
@@ -27,6 +28,7 @@ application g_app {};
 std::vector<mesh> g_meshes {};
 pipeline g_pipeline {};
 camera g_camera {};
+light g_light {};
 
 void load_meshes() {
     mesh mesh {};
@@ -38,10 +40,12 @@ void load_meshes() {
 void setup() {
     g_app.create();
 
-    g_pipeline.initialise();
-    g_pipeline.add_shader(GL_VERTEX_SHADER, "shaders/vertex_shader.glsl");
-    g_pipeline.add_shader(GL_FRAGMENT_SHADER, "shaders/fragment_shader.glsl");
-    g_pipeline.finalise();
+    g_pipeline.initialise(
+            {
+                { GL_VERTEX_SHADER, "shaders/vertex_shader.glsl" },
+                { GL_FRAGMENT_SHADER, "shaders/fragment_shader.glsl" }
+        }
+    );
 
     load_meshes();
 
@@ -82,7 +86,7 @@ bool input() {
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     if (!escaped) {
-        float speed { 0.0005f };
+        float speed { 0.00025f };
 
         if (state[SDL_SCANCODE_LCTRL]) speed *= 2;
 
@@ -133,8 +137,13 @@ void draw() {
     glm::mat4 proj_mat { g_camera.get_perspective_matrix() };
     g_pipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
+    //// ------ Other uniforms --------
+
     // Texture sampler
     g_pipeline.set_uniform(pipeline::UNIFORM_SAMPLER, 0);
+
+    // Light
+    g_pipeline.set_uniform(pipeline::UNIFORM_LIGHT, g_light);
 
     //// -------- Mesh Data ---------
 
@@ -142,7 +151,11 @@ void draw() {
         mesh.get_transform().rotate({ 0, 0.01, 0 });
 
         // Model matrix
-        g_pipeline.set_uniform(pipeline::UNIFORM_MODEL_MAT, mesh.get_transform().get_model_matrix());
+        glm::mat4 model_mat { mesh.get_transform().get_model_matrix() };
+        g_pipeline.set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
+
+        // Ambient material
+        g_pipeline.set_uniform(pipeline::UNIFORM_MATERIAL, mesh.get_ambient_material());
 
         // Draw call
         mesh.render();

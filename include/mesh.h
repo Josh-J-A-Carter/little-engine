@@ -14,7 +14,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "pipeline.h"
 #include "texture.h"
+#include "material.h"
 #include "transform.h"
 
 #define INVALID_MATERIAL 0xFFFFFFFF
@@ -26,6 +28,8 @@ struct mesh {
         void load(const std::string& file_name);
 
         void render();
+
+        material& get_ambient_material();
 
         transform& get_transform() { return m_transform; }
 
@@ -64,12 +68,13 @@ struct mesh {
         void populate_buffers();
         
 
-        std::vector<mesh_entry> m_meshes;
-        std::vector<unsigned int> m_indices;
-        GLuint m_VAO = 0;
+        std::vector<mesh_entry> m_meshes {};
+        std::vector<unsigned int> m_indices {};
+        GLuint m_VAO { 0 };
         GLuint m_buffers[NUM_BUFFERS] = { 0 };
 
-        std::vector<texture*> m_textures;
+        std::vector<texture*> m_textures {};
+        std::vector<material> m_materials {};
 
         std::vector<glm::vec3> m_vert_positions {};
         std::vector<glm::vec2> m_vert_texcoords {};
