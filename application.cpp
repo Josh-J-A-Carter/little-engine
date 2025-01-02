@@ -2,7 +2,6 @@
 
 #include "utilities.h"
 #include "application.h"
-#include "pipeline.h"
 
 void application::create() {
     m_program_time_start = std::chrono::high_resolution_clock::now();
@@ -48,8 +47,6 @@ void application::create() {
 #ifndef NDEBUG
     display_gl_version_info();
 #endif
-
-    m_pipeline.create();
 }
 
 void application::destroy() {
@@ -78,10 +75,6 @@ float application::aspect() {
 
 SDL_Window* application::window() {
     return m_window;
-}
-
-pipeline application::pipeline() {
-    return m_pipeline;
 }
 
 void application::update() {

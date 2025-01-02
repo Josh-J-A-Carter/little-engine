@@ -24,15 +24,32 @@
 
 
 application g_app {};
-camera g_camera {};
 std::vector<mesh> g_meshes {};
-
+pipeline g_pipeline {};
+camera g_camera {};
 
 void load_meshes() {
     mesh mesh {};
     mesh.load("./assets/cube.obj");
     mesh.get_transform().translate({ 0, 0, -0.5 });
     g_meshes.push_back(mesh);
+}
+
+void setup() {
+    g_app.create();
+
+    g_pipeline.initialise();
+    g_pipeline.add_shader(GL_VERTEX_SHADER, "shaders/vertex_shader.glsl");
+    g_pipeline.add_shader(GL_FRAGMENT_SHADER, "shaders/fragment_shader.glsl");
+    g_pipeline.finalise();
+
+    load_meshes();
+
+    // Set up the camera
+    g_camera = camera().init_pos({ 0, 0, 0 })
+                       .init_aspect({ g_app.aspect() })
+                       .init_clip(0.1, 10);
+
 }
 
 bool input() {
@@ -65,7 +82,7 @@ bool input() {
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     if (!escaped) {
-        float speed { 0.001f };
+        float speed { 0.0005f };
 
         if (state[SDL_SCANCODE_LCTRL]) speed *= 2;
 
@@ -102,26 +119,22 @@ void draw() {
     glClearColor(0.5f, 0.7f, 0.4f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+    // activate pipeline - this is appropriate location for iterating through multiple if needed
 
-    GLuint program = g_app.pipeline().program();
-    glUseProgram(program);
+    g_pipeline.enable();
 
     //// ------ Camera Matrices ------
 
     // View matrix
     glm::mat4 view_mat { g_camera.get_view_matrix() };
-    GLint view_mat_location = glGetUniformLocation(program, "u_view_matrix");
-    glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, &view_mat[0][0]);
+    g_pipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
 
     // Perspective matrix
-    glm::mat4 pers_mat { g_camera.get_perspective_matrix() };
-    GLint pers_mat_location = glGetUniformLocation(program, "u_pers_matrix");
-    glUniformMatrix4fv(pers_mat_location, 1, GL_FALSE, &pers_mat[0][0]);
+    glm::mat4 proj_mat { g_camera.get_perspective_matrix() };
+    g_pipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
-    GLint model_mat_location = glGetUniformLocation(program, "u_model_matrix");
-
-    GLint sampler_location = glGetUniformLocation(program, "u_sampler");
-    glUniform1i(sampler_location, 0);
+    // Texture sampler
+    g_pipeline.set_uniform(pipeline::UNIFORM_SAMPLER, 0);
 
     //// -------- Mesh Data ---------
 
@@ -129,15 +142,13 @@ void draw() {
         mesh.get_transform().rotate({ 0, 0.01, 0 });
 
         // Model matrix
-        glm::mat4 model_mat { mesh.get_transform().get_model_matrix() };
-        glUniformMatrix4fv(model_mat_location, 1, GL_FALSE, &model_mat[0][0]);
+        g_pipeline.set_uniform(pipeline::UNIFORM_MODEL_MAT, mesh.get_transform().get_model_matrix());
 
+        // Draw call
         mesh.render();
     }
 
-    // Cleanup - only actually necessary if we have multiple pipelines
-    glUseProgram(0);
-
+    // Swap buffers
     SDL_GL_SwapWindow(g_app.window());
 }
 
@@ -152,18 +163,9 @@ void loop() {
 }
 
 int main(int argv, char** args)  {
-    g_app.create();
-
-    load_meshes();
-
-    // Set up the camera
-    g_camera = camera().init_pos({ 0, 0, 0 })
-                       .init_aspect({ g_app.aspect() })
-                       .init_clip(0.1, 10);
+    setup();
 
     loop();
-
-    g_app.destroy();
 
     return EXIT_SUCCESS;
 }

@@ -7,21 +7,26 @@
 
 #include "pipeline.h"
 
+#define DEFAULT_WIDTH 960
+#define DEFAULT_HEIGHT 720
+
 struct application {
     private:
-        int m_window_height { 720 };
-        int m_window_width { 960 };
+        int m_window_width { DEFAULT_WIDTH };
+        int m_window_height { DEFAULT_HEIGHT };
         SDL_Window* m_window {};
         SDL_GLContext m_openGL_context {};
 
-        pipeline m_pipeline;
-
         std::chrono::high_resolution_clock::time_point m_program_time_start;
 
-    public:
-        void create();
-
         void destroy();
+
+    public:
+        ~application() {
+            destroy();
+        }
+
+        void create();
 
         float program_time();
 
@@ -32,8 +37,6 @@ struct application {
         float aspect();
 
         SDL_Window* window();
-
-        pipeline pipeline();
 
         void update();
 };

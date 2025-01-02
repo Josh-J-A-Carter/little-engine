@@ -6,25 +6,31 @@
 #include "utilities.h"
 #include "pipeline.h"
 
-GLuint pipeline::compile_shader(GLuint type, std::string source_code) {
+
+void pipeline::initialise() {
+    m_program = glCreateProgram();
+}
+
+void pipeline::enable() {
+    glUseProgram(m_program);
+}
+
+void pipeline::add_shader(GLuint type, std::string file_name) {
+
+    const std::string source { load_from_file(file_name) };
+
     GLuint shader_object {};
 
     // Make sure the shader is of an expected type
-    if (type == GL_VERTEX_SHADER) {
-        shader_object = glCreateShader(type);
-    }
-
-    else if (type == GL_FRAGMENT_SHADER) {
-        shader_object = glCreateShader(type);
-    }
-
+    if (type == GL_VERTEX_SHADER) shader_object = glCreateShader(type);
+    else if (type == GL_FRAGMENT_SHADER) shader_object = glCreateShader(type);
     else {
         std::cerr << "Fatal: Unknown type of shader" << std::endl;
         exit(EXIT_FAILURE);
     }
 
     // Compile
-    const char* source_array = source_code.c_str();
+    const char* source_array = source.c_str();
 
     glShaderSource(shader_object, 1, &source_array, nullptr);
     glCompileShader(shader_object);
@@ -46,28 +52,47 @@ GLuint pipeline::compile_shader(GLuint type, std::string source_code) {
         exit(EXIT_FAILURE);
     }
 
-    return shader_object;
+    glAttachShader(m_program, shader_object);
+
+    m_temp_shader_handles.push_back(shader_object);
 }
 
-void pipeline::create() {
-    GLuint program_object = glCreateProgram();
+GLint pipeline::get_uniform_location(uniform u) {
+    GLint loc { -1 };
 
-    // Compile
-    const std::string g_vertex_shader { load_from_file("shaders/vertex_shader.glsl") };
-    const std::string g_fragment_shader { load_from_file("shaders/fragment_shader.glsl") };
+    if (u == UNIFORM_MODEL_MAT) loc = glGetUniformLocation(m_program, "u_model_matrix");
+    else if (u == UNIFORM_VIEW_MAT) loc = glGetUniformLocation(m_program, "u_view_matrix");
+    else if (u == UNIFORM_PROJ_MAT) loc = glGetUniformLocation(m_program, "u_proj_matrix");
+    else if (u == UNIFORM_SAMPLER) loc = glGetUniformLocation(m_program, "u_sampler");
 
-    GLuint compiled_vertex_shader = compile_shader(GL_VERTEX_SHADER, g_vertex_shader);
-    GLuint compiled_fragment_shader = compile_shader(GL_FRAGMENT_SHADER, g_fragment_shader);
+    else {
+        std::cerr << "Error - unhandled uniform variant, with code " << u << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
-    // Link
-    glAttachShader(program_object, compiled_vertex_shader);
-    glAttachShader(program_object, compiled_fragment_shader);
-    glLinkProgram(program_object);
+    if (loc == -1) {
+        std::cerr << "Warning - unable to find uniform with code " << u << " - it may have been misspelled, or optimised out.\n";
+    }
+
+    return loc;
+}
+
+void pipeline::set_uniform(uniform u, glm::mat4 matrix) {
+    glUniformMatrix4fv(get_uniform_location(u), 1, GL_FALSE, &matrix[0][0]);
+}
+
+void pipeline::set_uniform(uniform u, int input) {
+    glUniform1i(get_uniform_location(u), input);
+}
+
+
+void pipeline::finalise() {
+    glLinkProgram(m_program);
 
     // Handle linking errors
     GLint status {};
-    glValidateProgram(program_object);
-    glGetProgramiv(program_object, GL_VALIDATE_STATUS, &status);
+    glValidateProgram(m_program);
+    glGetProgramiv(m_program, GL_VALIDATE_STATUS, &status);
 
     if (status == GL_FALSE) {
         std::cerr << "Fatal: Graphics pipeline failed to be established; the program object was invalid." << std::endl;
@@ -75,14 +100,8 @@ void pipeline::create() {
     }
 
     // Clean up shader programs
-    glDetachShader(program_object, compiled_vertex_shader);
-    glDetachShader(program_object, compiled_fragment_shader);
-    glDeleteShader(compiled_vertex_shader);
-    glDeleteShader(compiled_fragment_shader);
-
-    m_graphics_pipeline_program = program_object;
-}
-
-GLuint pipeline::program() {
-    return m_graphics_pipeline_program;
+    for (GLuint shader : m_temp_shader_handles) {
+        glDetachShader(m_program, shader);
+        glDeleteShader(shader);
+    }
 }
