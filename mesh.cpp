@@ -35,7 +35,6 @@ std::string get_full_path(const std::string& dir, const aiString& path) {
 
 
 void mesh::load(const std::string& file_name) {
-
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
 
@@ -120,7 +119,7 @@ void mesh::init_single_mesh(unsigned int mesh_index, const aiMesh* p_ai_mesh) {
     }
 
     // Populate the index buffer
-    for (unsigned int i { 0 }; i < p_ai_mesh->mNumFaces ; i + 1) {
+    for (unsigned int i { 0 } ; i < p_ai_mesh->mNumFaces ; i += 1) {
         const aiFace& Face = p_ai_mesh->mFaces[i];
         m_indices.push_back(Face.mIndices[0]);
         m_indices.push_back(Face.mIndices[1]);
