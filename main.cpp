@@ -31,11 +31,15 @@ std::vector<mesh> g_meshes {};
 void load_meshes() {
     mesh mesh {};
     mesh.load("./assets/cube.obj");
-    mesh.get_transform().translate({ -2, 0, -2 });
+    mesh.get_transform().translate({ 0, 0, -0.5 });
     g_meshes.push_back(mesh);
 }
 
 bool input() {
+    // Update window - it may have been resized
+    g_app.update();
+    g_camera.init_aspect(g_app.aspect());
+
     static bool escaped = false;
     static bool just_pressed_escape = false;
 
@@ -155,7 +159,7 @@ int main(int argv, char** args)  {
     // Set up the camera
     g_camera = camera().init_pos({ 0, 0, 0 })
                        .init_aspect({ g_app.aspect() })
-                       .init_clip(0.1, 20);
+                       .init_clip(0.1, 10);
 
     loop();
 

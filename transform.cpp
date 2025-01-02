@@ -13,6 +13,8 @@ glm::mat4 transform::get_model_matrix() const {
     model_matrix = glm::rotate(model_matrix, glm::radians(m_rot.y), { 0, 1, 0 });
     model_matrix = glm::rotate(model_matrix, glm::radians(m_rot.z), { 0, 0, 1 });
 
+    model_matrix = glm::scale(model_matrix, { 0.1, 0.1, 0.1 });
+
     return model_matrix;
 }
 

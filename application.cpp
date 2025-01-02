@@ -26,7 +26,7 @@ void application::create() {
 
     m_window = SDL_CreateWindow("Hello, OpenGL!",
                                 (screen_width - m_window_width) / 2, (screen_height - m_window_height) / 2,
-                                m_window_width, m_window_height, SDL_WINDOW_OPENGL);
+                                m_window_width, m_window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
 
     if (!m_window) {
         std::cerr << "Fatal: Could not create SDL window; aborting program." << std::endl;
@@ -82,4 +82,14 @@ SDL_Window* application::window() {
 
 pipeline application::pipeline() {
     return m_pipeline;
+}
+
+void application::update() {
+    int width { m_window_width };
+    int height { m_window_height };
+
+    SDL_GetWindowSize(m_window, &width, &height);
+
+    m_window_width = width;
+    m_window_height = height;
 }

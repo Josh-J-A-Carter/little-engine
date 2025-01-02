@@ -34,6 +34,8 @@ struct application {
         SDL_Window* window();
 
         pipeline pipeline();
+
+        void update();
 };
 
 #endif
