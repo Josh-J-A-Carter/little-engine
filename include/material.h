@@ -5,6 +5,7 @@
 
 struct material {
     glm::vec3 ambient_color { 1, 1, 1 };
+    glm::vec3 diffuse_color { 1, 1, 1 };
 };
 
 #endif

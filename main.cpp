@@ -31,10 +31,15 @@ camera g_camera {};
 light g_light {};
 
 void load_meshes() {
-    mesh mesh {};
-    mesh.load("./assets/cube.obj");
-    mesh.get_transform().translate({ 0, 0, -0.5 });
-    g_meshes.push_back(mesh);
+    mesh cube {};
+    cube.load("./assets/cube.obj");
+    cube.get_transform().translate({ 0, 0, -0.5 });
+    g_meshes.push_back(cube);
+
+    mesh sphere {};
+    sphere.load("./assets/sphere.obj");
+    sphere.get_transform().translate({-0.4, 0.2, -0.5});
+    g_meshes.push_back(sphere);
 }
 
 void setup() {
@@ -48,6 +53,9 @@ void setup() {
     );
 
     load_meshes();
+
+    g_light.pos += glm::vec3 { 0, 0.3, 0 };
+    g_light.color = { 1.0, 0.7, 0.7 };
 
     // Set up the camera
     g_camera = camera().init_pos({ 0, 0, 0 })
@@ -155,7 +163,7 @@ void draw() {
         g_pipeline.set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
 
         // Ambient material
-        g_pipeline.set_uniform(pipeline::UNIFORM_MATERIAL, mesh.get_ambient_material());
+        g_pipeline.set_uniform(pipeline::UNIFORM_MATERIAL, mesh.get_material());
 
         // Draw call
         mesh.render();

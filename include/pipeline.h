@@ -18,10 +18,13 @@ struct pipeline {
             UNIFORM_PROJ_MAT,
             UNIFORM_SAMPLER,
             UNIFORM_LIGHT,
+            UNIFORM_LIGHT__POSITION,
             UNIFORM_LIGHT__COLOR,
             UNIFORM_LIGHT__AMBIENT_INTENSITY,
+            UNIFORM_LIGHT__DIFFUSE_INTENSITY,
             UNIFORM_MATERIAL,
-            UNIFORM_MATERIAL__AMBIENT_COLOR
+            UNIFORM_MATERIAL__AMBIENT_COLOR,
+            UNIFORM_MATERIAL__DIFFUSE_COLOR
         };
 
         struct shader_src {

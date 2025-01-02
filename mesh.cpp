@@ -165,6 +165,14 @@ void mesh::init_materials(const aiScene* p_scene, const std::string& file_name) 
             m_materials[i].ambient_color.g = ambient_color.g;
             m_materials[i].ambient_color.b = ambient_color.b;
         }
+
+        aiColor3D diffuse_color { 0, 0, 0 };
+
+        if (p_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color) == AI_SUCCESS) {
+            m_materials[i].diffuse_color.r = diffuse_color.r;
+            m_materials[i].diffuse_color.g = diffuse_color.g;
+            m_materials[i].diffuse_color.b = diffuse_color.b;
+        }
     }
 }
 
@@ -214,8 +222,10 @@ void mesh::render() {
     glBindVertexArray(0);
 }
 
-material& mesh::get_ambient_material() {
+material& mesh::get_material() {
     for (material& material : m_materials) {
         if (material.ambient_color != glm::vec3 { 0, 0, 0 }) return material;
     }
+
+    return m_materials[0];
 }

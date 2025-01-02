@@ -71,10 +71,13 @@ GLint pipeline::get_uniform_location(uniform u) {
 
     else if (u == UNIFORM_SAMPLER) loc = glGetUniformLocation(m_program, "u_sampler");
 
+    else if (u == UNIFORM_LIGHT__POSITION) loc = glGetUniformLocation(m_program, "u_light.pos");
     else if (u == UNIFORM_LIGHT__COLOR) loc = glGetUniformLocation(m_program, "u_light.color");
     else if (u == UNIFORM_LIGHT__AMBIENT_INTENSITY) loc = glGetUniformLocation(m_program, "u_light.ambient_intensity");
+    else if (u == UNIFORM_LIGHT__DIFFUSE_INTENSITY) loc = glGetUniformLocation(m_program, "u_light.diffuse_intensity");
 
     else if (u == UNIFORM_MATERIAL__AMBIENT_COLOR) loc = glGetUniformLocation(m_program, "u_material.ambient_color");
+    else if (u == UNIFORM_MATERIAL__DIFFUSE_COLOR) loc = glGetUniformLocation(m_program, "u_material.diffuse_color");
 
     else {
         std::cerr << "Error - unhandled uniform variant, with code " << u << std::endl;
@@ -99,14 +102,17 @@ void pipeline::set_uniform(uniform u, int input) {
 void pipeline::set_uniform(uniform u, light& light) {
     if (u != UNIFORM_LIGHT) return;
 
+    glUniform3fv(get_uniform_location(UNIFORM_LIGHT__POSITION), 1, &light.pos[0]);
     glUniform3fv(get_uniform_location(UNIFORM_LIGHT__COLOR), 1, &light.color[0]);
     glUniform1f(get_uniform_location(UNIFORM_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
+    glUniform1f(get_uniform_location(UNIFORM_LIGHT__DIFFUSE_INTENSITY), light.diffuse_intensity);
 }
 
 void pipeline::set_uniform(uniform u, material& material) {
     if (u != UNIFORM_MATERIAL) return;
 
     glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__AMBIENT_COLOR), 1, &material.ambient_color[0]);
+    glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__DIFFUSE_COLOR), 1, &material.diffuse_color[0]);
 }
 
 void pipeline::finalise() {

@@ -29,7 +29,7 @@ struct mesh {
 
         void render();
 
-        material& get_ambient_material();
+        material& get_material();
 
         transform& get_transform() { return m_transform; }
 
