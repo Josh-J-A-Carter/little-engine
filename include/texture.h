@@ -9,10 +9,10 @@ struct texture {
     private:
         GLenum m_texture_target;
         GLuint m_texture_object;
-        const std::string& m_file_name;
+        std::string m_file_name;
 
     public:
-        texture(GLenum texture_target, const std::string& file_name) 
+        texture(GLenum texture_target, std::string file_name) 
             : m_texture_target { texture_target }
             , m_file_name { file_name } {}
 

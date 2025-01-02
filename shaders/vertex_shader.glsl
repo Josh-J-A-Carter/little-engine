@@ -2,6 +2,7 @@
 
 in vec3 in_position;
 in vec2 in_texcoord0;
+in vec3 in_normals;
 
 uniform mat4 u_model_matrix;
 uniform mat4 u_view_matrix;
