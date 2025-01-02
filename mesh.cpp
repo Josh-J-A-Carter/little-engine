@@ -128,7 +128,6 @@ void mesh::init_single_mesh(unsigned int mesh_index, const aiMesh* p_ai_mesh) {
 }
 
 void mesh::init_materials(const aiScene* p_scene, const std::string& file_name) {
-
     std::string::size_type slash_index { file_name.find_last_of("/") };
     std::string dir {};
 
@@ -136,13 +135,12 @@ void mesh::init_materials(const aiScene* p_scene, const std::string& file_name) 
     else if (slash_index == 0) dir = "/";
     else dir = file_name.substr(0, slash_index);
 
-
     for (unsigned int i { 0 } ; i < p_scene->mNumMaterials ; i += 1) {
         const aiMaterial* p_material = p_scene->mMaterials[i];
 
         m_textures[i] = nullptr;
         
-        if(p_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+        if (p_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString path;
 
             if (p_material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {

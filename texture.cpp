@@ -17,6 +17,8 @@ void texture::load() {
         exit(EXIT_FAILURE);
     }
 
+    std::cerr << "Loaded image data" << std::endl;
+
     glGenTextures(1, &m_texture_object);
     glBindTexture(m_texture_target, m_texture_object);
 
