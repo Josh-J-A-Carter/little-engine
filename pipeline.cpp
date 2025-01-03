@@ -79,6 +79,8 @@ GLint pipeline::get_uniform_location(uniform u) {
     else if (u == UNIFORM_MATERIAL__AMBIENT_COLOR) loc = glGetUniformLocation(m_program, "u_material.ambient_color");
     else if (u == UNIFORM_MATERIAL__DIFFUSE_COLOR) loc = glGetUniformLocation(m_program, "u_material.diffuse_color");
 
+    else if (u == UNIFORM_TIME) loc = glGetUniformLocation(m_program, "u_time");
+
     else {
         std::cerr << "Error - unhandled uniform variant, with code " << u << std::endl;
         exit(EXIT_FAILURE);
@@ -99,6 +101,10 @@ void pipeline::set_uniform(uniform u, int input) {
     glUniform1i(get_uniform_location(u), input);
 }
 
+void pipeline::set_uniform(uniform u, float input) {
+    glUniform1f(get_uniform_location(u), input);
+}
+
 void pipeline::set_uniform(uniform u, light& light) {
     if (u != UNIFORM_LIGHT) return;
 
@@ -113,6 +119,10 @@ void pipeline::set_uniform(uniform u, material& material) {
 
     glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__AMBIENT_COLOR), 1, &material.ambient_color[0]);
     glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__DIFFUSE_COLOR), 1, &material.diffuse_color[0]);
+}
+
+void pipeline::set_uniform(uniform u, glm::vec3 vector) {
+    glUniform3fv(get_uniform_location(u), 1, &vector[0]);
 }
 
 void pipeline::finalise() {

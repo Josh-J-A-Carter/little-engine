@@ -13,9 +13,9 @@ struct transform {
     public:
         transform() {}
 
-        void translate(glm::vec3 delta);
+        glm::vec3& position();
 
-        void rotate(glm::vec3 delta);
+        glm::vec3& rotation();
 
         glm::mat4 get_model_matrix() const;
 };

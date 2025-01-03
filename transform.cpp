@@ -18,10 +18,10 @@ glm::mat4 transform::get_model_matrix() const {
     return model_matrix;
 }
 
-void transform::translate(glm::vec3 delta) {
-    m_pos += delta;
+glm::vec3& transform::position() {
+    return m_pos;
 }
 
-void transform::rotate(glm::vec3 delta) {
-    m_rot += delta;
+glm::vec3& transform::rotation() {
+    return m_rot;
 }

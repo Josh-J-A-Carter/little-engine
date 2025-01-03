@@ -24,7 +24,8 @@ struct pipeline {
             UNIFORM_LIGHT__DIFFUSE_INTENSITY,
             UNIFORM_MATERIAL,
             UNIFORM_MATERIAL__AMBIENT_COLOR,
-            UNIFORM_MATERIAL__DIFFUSE_COLOR
+            UNIFORM_MATERIAL__DIFFUSE_COLOR,
+            UNIFORM_TIME,
         };
 
         struct shader_src {
@@ -38,8 +39,10 @@ struct pipeline {
 
         void set_uniform(uniform u, glm::mat4& matrix);
         void set_uniform(uniform u, int input);
+        void set_uniform(uniform u, float input);
         void set_uniform(uniform u, light& light);
         void set_uniform(uniform u, material& material);
+        void set_uniform(uniform u, glm::vec3 vector);
 
     private:
         void add_shader(GLuint type, std::string file_name);

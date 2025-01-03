@@ -33,7 +33,11 @@ struct camera {
 
         void translate(glm::vec3 delta);
 
+        glm::vec3 position();
+
         void rotate(glm::vec2 delta);
+
+        glm::vec2 rotation();
 
         glm::mat4 get_view_matrix() const;
 

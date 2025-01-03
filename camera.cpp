@@ -26,6 +26,14 @@ void camera::rotate(glm::vec2 delta) {
     m_facing = glm::rotate(m_forward, glm::radians(m_mouse.y), left());
 }
 
+glm::vec3 camera::position() {
+    return m_pos;
+}
+
+glm::vec2 camera::rotation() {
+    return m_mouse;
+}
+
 glm::mat4 camera::get_view_matrix() const {
     return glm::lookAt(m_pos, m_pos + m_facing, m_up);
 }
