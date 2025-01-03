@@ -8,8 +8,8 @@
 void texture::load() {
     stbi_set_flip_vertically_on_load(true);
 
-    int width, height, bits_per_pixel;
-    unsigned char* image_data = stbi_load(m_file_name.c_str(), &width, &height, &bits_per_pixel, 0);
+    int width, height, num_channels;
+    unsigned char* image_data = stbi_load(m_file_name.c_str(), &width, &height, &num_channels, 0);
 
     if (!image_data) {
         std::cerr << "Unable to load image file \"" << m_file_name << "\"." << std::endl;
@@ -24,13 +24,19 @@ void texture::load() {
         std::cerr << "Texture type unsupported." << std::endl;
         exit(EXIT_FAILURE);
     }
+    
+    if (num_channels == 4) {
+        glTexImage2D(m_texture_target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    }
 
-    glTexImage2D(m_texture_target, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    else if (num_channels == 3) {
+        glTexImage2D(m_texture_target, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+    }
 
     glTexParameterf(m_texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(m_texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(m_texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(m_texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameterf(m_texture_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(m_texture_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glBindTexture(m_texture_target, 0);
 

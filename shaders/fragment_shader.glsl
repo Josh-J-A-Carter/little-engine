@@ -28,9 +28,9 @@ void main() {
     vec3 light_dir = v_world_pos - u_light.pos;
 
     float distance = length(light_dir) * 3;
-    float diffuse = clamp(dot(normalize(v_normal), -normalize(light_dir)), 0.0f, 1.0f) / (1 + distance);
+    float diffuse = clamp(dot(normalize(v_normal), -normalize(light_dir)), 0.0f, 1.0f) / (1 + distance) * 3;
 
     vec4 diffuse_color = vec4(u_light.color, 1.0f) * vec4(u_material.diffuse_color, 1.0f) * u_light.diffuse_intensity * diffuse;
 
-    out_color = texture2D(u_sampler, v_texcoord0) * (ambient_color * 2 + diffuse_color);
+    out_color = texture2D(u_sampler, v_texcoord0) * (ambient_color + diffuse_color);
 }

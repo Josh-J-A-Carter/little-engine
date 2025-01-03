@@ -11,6 +11,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include "utilities.h"
 #include "application.h"
@@ -35,13 +36,19 @@ mesh g_light_mesh {};
 void load_meshes() {
     mesh cube {};
     cube.load("./assets/cube.obj");
-    cube.get_transform().position() = { 0, 0, -0.5 };
+    cube.get_transform().position() = { 0, 0, -0.3 };
     g_meshes.push_back(cube);
 
     mesh sphere {};
     sphere.load("./assets/sphere.obj");
-    sphere.get_transform().position() = {-0.4, 0.2, -0.5};
+    sphere.get_transform().position() = {-0.4, 0.2, -0.3};
     g_meshes.push_back(sphere);
+
+    mesh floor {};
+    floor.load("./assets/floor.obj");
+    floor.get_transform().position() = {0.0, -0.2, 0.0};
+    g_meshes.push_back(floor);
+
 
     g_light_mesh.load("./assets/quad.obj");
     g_light_mesh.get_transform().position() = g_light.pos;
@@ -67,8 +74,10 @@ void setup() {
 
     load_meshes();
 
-    g_light.pos += glm::vec3 { 0, 0.3, 0 };
+    // g_light.pos += glm::vec3 { 0, 0.3, 0 };
     g_light.color = { 1.0, 0.7, 0.7 };
+    g_light.ambient_intensity = 0.2;
+    g_light.diffuse_intensity = 1.2;
 
     // Set up the camera
     g_camera = camera().init_pos({ 0, 0, 0 })
@@ -140,7 +149,7 @@ void draw() {
     // glCullFace(GL_BACK);
 
     glBlendFunc(GL_ONE, GL_ZERO);
-    glEnable(GL_BLEND);
+    glDisable(GL_BLEND);
     
     glViewport(0, 0, g_app.width(), g_app.height());
 
@@ -172,7 +181,7 @@ void draw() {
     //// -------- Mesh Data ---------
 
     for (mesh& mesh : g_meshes) {
-        mesh.get_transform().rotation() += glm::vec3 { 0, 0.01, 0 };
+        // mesh.get_transform().rotation() += glm::vec3 { 0, 0.01, 0 };
 
         // Model matrix
         glm::mat4 model_mat { mesh.get_transform().get_model_matrix() };
@@ -185,7 +194,9 @@ void draw() {
         mesh.render();
     }
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glEnable(GL_BLEND);
 
     g_transparent.enable();
 
@@ -195,21 +206,28 @@ void draw() {
     // Perspective matrix
     g_transparent.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
-    glm::vec3 face_cam_dir = g_camera.position() - g_light_mesh.get_transform().position();
-    glm::vec3 base_face_dir = { 1, 0, 1 };
+    glm::vec3 face_cam_dir = glm::normalize(g_camera.position() - g_light_mesh.get_transform().position());
+    glm::vec3 base_face_dir = { 0, 0, -1 };
 
-    glm::vec3 face_cam_dir_y = { face_cam_dir.x, 0, face_cam_dir.z };
-    float cos_angle = (glm::dot(glm::normalize(face_cam_dir_y), glm::normalize(base_face_dir)));
-    float sin_angle = glm::cross(base_face_dir, face_cam_dir_y).y;
-    float x_angle_deg = glm::degrees(atan2(sin_angle, cos_angle));
-    g_light_mesh.get_transform().rotation() = { 0, x_angle_deg, 0 };
+    // Rotation around y axis
+    glm::vec3 face_cam_dir_xz = { face_cam_dir.x, 0, face_cam_dir.z };
+    float cos_angle = glm::dot(glm::normalize(face_cam_dir_xz), glm::normalize(base_face_dir));
+    float sin_angle = glm::cross(base_face_dir, face_cam_dir_xz).y;
+    float y_angle_deg = glm::degrees(atan2(sin_angle, cos_angle));
+
+    // // Rotation around x axis
+    // glm::vec3 face_cam_dir_yz = { 0, face_cam_dir.y, face_cam_dir.z };
+    // cos_angle = glm::dot(glm::normalize(face_cam_dir_yz), glm::normalize(base_face_dir));
+    // sin_angle = glm::cross(base_face_dir, face_cam_dir_yz).x;
+    // float x_angle_deg = glm::degrees(atan2(sin_angle, cos_angle));
+    
+    g_light_mesh.get_transform().rotation() = { 0, y_angle_deg, 0 };
+    g_light_mesh.get_transform().position() = { 0.6 * cos(g_app.program_time()), 0.4, 0.6 * sin(g_app.program_time()) };
+    g_light.pos = g_light_mesh.get_transform().position();
 
     // Model matrix
     glm::mat4 model_mat { g_light_mesh.get_transform().get_model_matrix() };
     g_transparent.set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
-
-    // Time
-    g_transparent.set_uniform(pipeline::UNIFORM_TIME, g_app.program_time());
 
     // Draw call
     g_light_mesh.render();

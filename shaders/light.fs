@@ -9,5 +9,5 @@ out vec4 out_color;
 void main() {
     vec3 dir_to_centre = vec3(0, 0, 0) - v_loc_pos;
     float dist = length(dir_to_centre);
-    out_color = vec4(1.0f, 1.0f, 0.0f, 0.75f) * (0.8 - dist + (dist) * sin((dir_to_centre.x * dir_to_centre.y) * 20)*0.1) * (sin(u_time * 2)*0.05 + 0.9);
+    out_color = vec4(1.0f, 1.0f, 0.0f, 0.75f) * (0.8 - dist );
 }
