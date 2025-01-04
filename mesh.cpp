@@ -151,7 +151,6 @@ void mesh::init_materials(const aiScene* p_scene, const std::string& file_name) 
 
         if (p_material->GetTextureCount(aiTextureType_SHININESS) > 0) {
             aiString path;
-
             if (p_material->GetTexture(aiTextureType_SHININESS, 0, &path) == AI_SUCCESS) {
                 std::string p { path.data };
                 if (p.substr(0, 2) == ".\\") p = p.substr(2, p.size() - 2);

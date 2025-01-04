@@ -125,7 +125,7 @@ bool input() {
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     if (!escaped) {
-        float speed { 0.0005f };
+        float speed { 0.001f };
 
         if (state[SDL_SCANCODE_LCTRL]) speed *= 2;
 
@@ -172,7 +172,11 @@ void draw() {
     // Directional Light
     g_dir_light.direction = { cos(time), -sin(time), 0 };
     g_dir_light.diffuse_intensity = 1 * sin(time) * 1.5;
-    if (g_dir_light.diffuse_intensity < 0) g_dir_light.diffuse_intensity = 0;
+    g_dir_light.specular_intensity = 1 * sin(time) * 1.5;
+    if (g_dir_light.diffuse_intensity < 0) {
+        g_dir_light.diffuse_intensity = 0;
+        g_dir_light.specular_intensity = 0;
+    }
 
 
     glClearColor(now.r, now.g, now.b, 1.0f);
@@ -195,8 +199,8 @@ void draw() {
     //// ------ Other uniforms --------
 
     // Texture samplers
-    g_pipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DIFFUSE, 0);
-    g_pipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, 1);
+    g_pipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DIFFUSE, DIFFUSE_TEX_UNIT_INDEX);
+    g_pipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, SPECULAR_TEX_UNIT_INDEX);
 
     // Lights
     g_pipeline.set_uniform(pipeline::UNIFORM_DIR_LIGHT, g_dir_light);

@@ -4,7 +4,9 @@
 #include <string>
 
 #define DIFFUSE_TEX_UNIT GL_TEXTURE0
+#define DIFFUSE_TEX_UNIT_INDEX 0
 #define SPECULAR_TEX_UNIT GL_TEXTURE1
+#define SPECULAR_TEX_UNIT_INDEX 1
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
