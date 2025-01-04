@@ -14,7 +14,6 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "texture.h"
 #include "material.h"
 
 #define INVALID_MATERIAL 0xFFFFFFFF
@@ -68,7 +67,6 @@ struct mesh {
         GLuint m_VAO { 0 };
         GLuint m_buffers[NUM_BUFFERS] = { 0 };
 
-        std::vector<texture*> m_textures {};
         std::vector<material> m_materials {};
 
         std::vector<glm::vec3> m_vert_positions {};

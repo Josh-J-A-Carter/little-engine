@@ -21,16 +21,25 @@ void texture::load() {
     glBindTexture(m_texture_target, m_texture_object);
 
     if (m_texture_target != GL_TEXTURE_2D) {
-        std::cerr << "Texture type unsupported." << std::endl;
+        std::cerr << "Texture type unsupported; only 2D textures are possible." << std::endl;
         exit(EXIT_FAILURE);
     }
     
-    if (num_channels == 4) {
-        glTexImage2D(m_texture_target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    if (num_channels == 1) {
+        glTexImage2D(m_texture_target, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image_data);
     }
 
     else if (num_channels == 3) {
         glTexImage2D(m_texture_target, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+    }
+
+    else if (num_channels == 4) {
+        glTexImage2D(m_texture_target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    }
+
+    else {
+        std::cerr << "Texture type unsupported; unexpected number of color channels." << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     glTexParameterf(m_texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

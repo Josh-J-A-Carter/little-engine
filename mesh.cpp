@@ -16,9 +16,6 @@
 #define TEX_COORD_LOCATION 1
 #define NORMAL_LOCATION    2
 
-#define COLOR_TEXTURE_UNIT GL_TEXTURE0
-
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #define ASSIMP_LOAD_FLAGS (aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices)
 
 
@@ -58,7 +55,6 @@ void mesh::load(const std::string& file_name) {
 
 void mesh::init_from_scene(const aiScene* p_scene, const std::string& file_name) {
     m_meshes.resize(p_scene->mNumMeshes);
-    m_textures.resize(p_scene->mNumMaterials);
     m_materials.resize(p_scene->mNumMaterials);
 
     unsigned int num_vertices = 0;
@@ -140,21 +136,28 @@ void mesh::init_materials(const aiScene* p_scene, const std::string& file_name) 
 
     for (unsigned int i { 0 } ; i < p_scene->mNumMaterials ; i += 1) {
         const aiMaterial* p_material = p_scene->mMaterials[i];
-
-        m_textures[i] = nullptr;
         
         if (p_material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString path;
 
             if (p_material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
                 std::string p { path.data };
-
                 if (p.substr(0, 2) == ".\\") p = p.substr(2, p.size() - 2);
                 std::string full_path { dir + "/" + p };
+                m_materials[i].diffuse_texture = new texture(GL_TEXTURE_2D, full_path.c_str());                
+                m_materials[i].diffuse_texture->load();
+            }
+        }
 
-                m_textures[i] = new texture(GL_TEXTURE_2D, full_path.c_str());
-                
-                m_textures[i]->load();
+        if (p_material->GetTextureCount(aiTextureType_SHININESS) > 0) {
+            aiString path;
+
+            if (p_material->GetTexture(aiTextureType_SHININESS, 0, &path) == AI_SUCCESS) {
+                std::string p { path.data };
+                if (p.substr(0, 2) == ".\\") p = p.substr(2, p.size() - 2);
+                std::string full_path { dir + "/" + p };
+                m_materials[i].specular_texture = new texture(GL_TEXTURE_2D, full_path.c_str());                
+                m_materials[i].specular_texture->load();
             }
         }
 
@@ -172,6 +175,14 @@ void mesh::init_materials(const aiScene* p_scene, const std::string& file_name) 
             m_materials[i].diffuse_color.r = diffuse_color.r;
             m_materials[i].diffuse_color.g = diffuse_color.g;
             m_materials[i].diffuse_color.b = diffuse_color.b;
+        }
+
+        aiColor3D specular_color { 0, 0, 0 };
+
+        if (p_material->Get(AI_MATKEY_COLOR_SPECULAR, specular_color) == AI_SUCCESS) {
+            m_materials[i].specular_color.r = specular_color.r;
+            m_materials[i].specular_color.g = specular_color.g;
+            m_materials[i].specular_color.b = specular_color.b;
         }
     }
 }
@@ -208,10 +219,20 @@ void mesh::render() {
     for (unsigned int i { 0 } ; i < m_meshes.size() ; i += 1) {
         const unsigned int material_index = m_meshes[i].material_index;
 
-        assert(material_index < m_textures.size());
+        assert(material_index < m_materials.size());
 
-        if (m_textures[material_index]) {
-            m_textures[material_index]->bind(COLOR_TEXTURE_UNIT);
+        if (m_materials[material_index].diffuse_texture) {
+            m_materials[material_index].diffuse_texture->bind(DIFFUSE_TEX_UNIT);
+        } else {
+            glActiveTexture(DIFFUSE_TEX_UNIT);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
+        if (m_materials[material_index].specular_texture) {
+            m_materials[material_index].specular_texture->bind(SPECULAR_TEX_UNIT);
+        } else {
+            glActiveTexture(SPECULAR_TEX_UNIT);
+            glBindTexture(GL_TEXTURE_2D, 0);
         }
 
         glDrawElementsBaseVertex(GL_TRIANGLES, m_meshes[i].num_indices, GL_UNSIGNED_INT,

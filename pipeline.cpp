@@ -6,6 +6,7 @@
 #include "utilities.h"
 #include "pipeline.h"
 #include "point_light.h"
+#include "directional_light.h"
 #include "material.h"
 
 void pipeline::initialise(std::vector<shader_src> shaders) {
@@ -69,26 +70,31 @@ GLint pipeline::get_uniform_location(uniform u) {
     else if (u == UNIFORM_VIEW_MAT) loc = glGetUniformLocation(m_program, "u_view_matrix");
     else if (u == UNIFORM_PROJ_MAT) loc = glGetUniformLocation(m_program, "u_proj_matrix");
 
-    else if (u == UNIFORM_SAMPLER) loc = glGetUniformLocation(m_program, "u_sampler");
+    else if (u == UNIFORM_SAMPLER_DIFFUSE) loc = glGetUniformLocation(m_program, "u_sampler_diffuse");
+    else if (u == UNIFORM_SAMPLER_SPECULAR) loc = glGetUniformLocation(m_program, "u_sampler_specular");
 
-    else if (u == UNIFORM_LIGHT__POSITION) loc = glGetUniformLocation(m_program, "u_light.pos");
-    else if (u == UNIFORM_LIGHT__COLOR) loc = glGetUniformLocation(m_program, "u_light.color");
-    else if (u == UNIFORM_LIGHT__AMBIENT_INTENSITY) loc = glGetUniformLocation(m_program, "u_light.ambient_intensity");
-    else if (u == UNIFORM_LIGHT__DIFFUSE_INTENSITY) loc = glGetUniformLocation(m_program, "u_light.diffuse_intensity");
+    else if (u == UNIFORM_DIR_LIGHT__DIRECTION) loc = glGetUniformLocation(m_program, "u_dir_light.direction");
+    else if (u == UNIFORM_DIR_LIGHT__COLOR) loc = glGetUniformLocation(m_program, "u_dir_light.color");
+    else if (u == UNIFORM_DIR_LIGHT__AMBIENT_INTENSITY) loc = glGetUniformLocation(m_program, "u_dir_light.ambient_intensity");
+    else if (u == UNIFORM_DIR_LIGHT__DIFFUSE_INTENSITY) loc = glGetUniformLocation(m_program, "u_dir_light.diffuse_intensity");
+    else if (u == UNIFORM_DIR_LIGHT__SPECULAR_INTENSITY) loc = glGetUniformLocation(m_program, "u_dir_light.specular_intensity");
 
     else if (u == UNIFORM_MATERIAL__AMBIENT_COLOR) loc = glGetUniformLocation(m_program, "u_material.ambient_color");
     else if (u == UNIFORM_MATERIAL__DIFFUSE_COLOR) loc = glGetUniformLocation(m_program, "u_material.diffuse_color");
+    else if (u == UNIFORM_MATERIAL__SPECULAR_COLOR) loc = glGetUniformLocation(m_program, "u_material.specular_color");
 
     else if (u == UNIFORM_TIME) loc = glGetUniformLocation(m_program, "u_time");
+
+    else if (u == UNIFORM_CAMERA) loc = glGetUniformLocation(m_program, "u_camera_pos");
 
     else {
         std::cerr << "Error - unhandled uniform variant, with code " << u << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    if (loc == -1) {
-        std::cerr << "Warning - unable to find uniform with code " << u << " - it may have been misspelled, or optimised out.\n";
-    }
+    // if (loc == -1) {
+    //     std::cerr << "Warning - unable to find uniform with code " << u << " - it may have been misspelled, or optimised out.\n";
+    // }
 
     return loc;
 }
@@ -105,20 +111,31 @@ void pipeline::set_uniform(uniform u, float input) {
     glUniform1f(get_uniform_location(u), input);
 }
 
-void pipeline::set_uniform(uniform u, point_light& light) {
-    if (u != UNIFORM_LIGHT) return;
+void pipeline::set_uniform(uniform u, directional_light& light) {
+    if (u != UNIFORM_DIR_LIGHT) return;
 
-    glUniform3fv(get_uniform_location(UNIFORM_LIGHT__POSITION), 1, &light.object.transform.pos[0]);
-    glUniform3fv(get_uniform_location(UNIFORM_LIGHT__COLOR), 1, &light.color[0]);
-    glUniform1f(get_uniform_location(UNIFORM_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
-    glUniform1f(get_uniform_location(UNIFORM_LIGHT__DIFFUSE_INTENSITY), light.diffuse_intensity);
+    glUniform3fv(get_uniform_location(UNIFORM_DIR_LIGHT__DIRECTION), 1, &light.direction[0]);
+    glUniform3fv(get_uniform_location(UNIFORM_DIR_LIGHT__COLOR), 1, &light.color[0]);
+    glUniform1f(get_uniform_location(UNIFORM_DIR_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
+    glUniform1f(get_uniform_location(UNIFORM_DIR_LIGHT__DIFFUSE_INTENSITY), light.diffuse_intensity);
+    glUniform1f(get_uniform_location(UNIFORM_DIR_LIGHT__SPECULAR_INTENSITY), light.specular_intensity);
 }
+
+// void pipeline::set_uniform(uniform u, point_light& light) {
+//     if (u != UNIFORM_LIGHT) return;
+
+//     glUniform3fv(get_uniform_location(UNIFORM_LIGHT__POSITION), 1, &light.object.transform.pos[0]);
+//     glUniform3fv(get_uniform_location(UNIFORM_LIGHT__COLOR), 1, &light.color[0]);
+//     glUniform1f(get_uniform_location(UNIFORM_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
+//     glUniform1f(get_uniform_location(UNIFORM_LIGHT__DIFFUSE_INTENSITY), light.diffuse_intensity);
+// }
 
 void pipeline::set_uniform(uniform u, material& material) {
     if (u != UNIFORM_MATERIAL) return;
 
     glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__AMBIENT_COLOR), 1, &material.ambient_color[0]);
     glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__DIFFUSE_COLOR), 1, &material.diffuse_color[0]);
+    glUniform3fv(get_uniform_location(UNIFORM_MATERIAL__SPECULAR_COLOR), 1, &material.specular_color[0]);
 }
 
 void pipeline::set_uniform(uniform u, glm::vec3 vector) {

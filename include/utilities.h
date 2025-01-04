@@ -3,6 +3,11 @@
 
 #include <string>
 
+#define DIFFUSE_TEX_UNIT GL_TEXTURE0
+#define SPECULAR_TEX_UNIT GL_TEXTURE1
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
 void display_gl_version_info();
 
 void clear_gl_errors();
