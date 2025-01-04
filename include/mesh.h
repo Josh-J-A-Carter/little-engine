@@ -14,10 +14,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "pipeline.h"
 #include "texture.h"
 #include "material.h"
-#include "transform.h"
 
 #define INVALID_MATERIAL 0xFFFFFFFF
 
@@ -30,9 +28,6 @@ struct mesh {
         void render();
 
         material& get_material();
-
-        transform& get_transform() { return m_transform; }
-
 
     private:
 
@@ -79,8 +74,6 @@ struct mesh {
         std::vector<glm::vec3> m_vert_positions {};
         std::vector<glm::vec2> m_vert_texcoords {};
         std::vector<glm::vec3> m_vert_normals {};
-
-        transform m_transform;
 };
 
 

@@ -10,8 +10,6 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 #include "utilities.h"
 #include "application.h"
@@ -19,7 +17,8 @@
 #include "camera.h"
 #include "mesh.h"
 #include "texture.h"
-#include "light.h"
+#include "point_light.h"
+#include "object.h"
 
 
 // #define NDEBUG
@@ -30,29 +29,34 @@ std::vector<mesh> g_meshes {};
 pipeline g_pipeline {};
 pipeline g_transparent {};
 camera g_camera {};
-light g_light {};
+point_light g_light {};
 mesh g_light_mesh {};
+
+std::vector<object> g_opaque_objects {};
+
 
 void load_meshes() {
     mesh cube {};
     cube.load("./assets/cube.obj");
-    cube.get_transform().position() = { 0, 0, -0.3 };
     g_meshes.push_back(cube);
 
     mesh sphere {};
     sphere.load("./assets/sphere.obj");
-    sphere.get_transform().position() = {-0.4, 0.2, -0.3};
     g_meshes.push_back(sphere);
 
     mesh floor {};
     floor.load("./assets/floor.obj");
-    floor.get_transform().position() = {0.0, -0.2, 0.0};
     g_meshes.push_back(floor);
 
+    mesh quad {};
+    quad.load("./assets/quad.obj");
+    g_meshes.push_back(quad);
 
-    g_light_mesh.load("./assets/quad.obj");
-    g_light_mesh.get_transform().position() = g_light.pos;
-    // g_meshes.push_back(g_light_mesh);
+    g_opaque_objects.push_back({ .transform = { .pos = { 0, 0, -0.3 } }, .mesh = &g_meshes[0] });
+    g_opaque_objects.push_back({ .transform = { .pos = { 0.2, 0.3, -0.3 }}, .mesh = &g_meshes[1] });
+    g_opaque_objects.push_back({ .transform = { .pos = { 0, -0.2, 0 }}, .mesh = &g_meshes[2] });
+
+    g_light.object.mesh = &g_meshes[3];
 }
 
 void setup() {
@@ -74,8 +78,7 @@ void setup() {
 
     load_meshes();
 
-    // g_light.pos += glm::vec3 { 0, 0.3, 0 };
-    g_light.color = { 1.0, 0.7, 0.7 };
+    g_light.color = { 1.0, 0.7, 0.7 };  
     g_light.ambient_intensity = 0.2;
     g_light.diffuse_intensity = 1.2;
 
@@ -180,21 +183,24 @@ void draw() {
 
     //// -------- Mesh Data ---------
 
-    for (mesh& mesh : g_meshes) {
+    for (object& obj : g_opaque_objects) {
         // mesh.get_transform().rotation() += glm::vec3 { 0, 0.01, 0 };
 
         // Model matrix
-        glm::mat4 model_mat { mesh.get_transform().get_model_matrix() };
+        glm::mat4 model_mat { obj.transform.get_model_matrix() };
         g_pipeline.set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
 
         // Ambient material
-        g_pipeline.set_uniform(pipeline::UNIFORM_MATERIAL, mesh.get_material());
+        g_pipeline.set_uniform(pipeline::UNIFORM_MATERIAL, obj.mesh->get_material());
 
         // Draw call
-        mesh.render();
+        obj.mesh->render();
     }
 
+    // Multiplicative blending
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Additive blending
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glEnable(GL_BLEND);
 
@@ -206,7 +212,7 @@ void draw() {
     // Perspective matrix
     g_transparent.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
-    glm::vec3 face_cam_dir = glm::normalize(g_camera.position() - g_light_mesh.get_transform().position());
+    glm::vec3 face_cam_dir = glm::normalize(g_camera.position() - g_light.object.transform.pos);
     glm::vec3 base_face_dir = { 0, 0, -1 };
 
     // Rotation around y axis
@@ -221,16 +227,15 @@ void draw() {
     // sin_angle = glm::cross(base_face_dir, face_cam_dir_yz).x;
     // float x_angle_deg = glm::degrees(atan2(sin_angle, cos_angle));
     
-    g_light_mesh.get_transform().rotation() = { 0, y_angle_deg, 0 };
-    g_light_mesh.get_transform().position() = { 0.6 * cos(g_app.program_time()), 0.4, 0.6 * sin(g_app.program_time()) };
-    g_light.pos = g_light_mesh.get_transform().position();
+    g_light.object.transform.rot = { 0, y_angle_deg, 0 };
+    g_light.object.transform.pos = { 0.6 * cos(g_app.program_time()), 0.4, 0.6 * sin(g_app.program_time()) };
 
     // Model matrix
-    glm::mat4 model_mat { g_light_mesh.get_transform().get_model_matrix() };
+    glm::mat4 model_mat { g_light.object.transform.get_model_matrix() };
     g_transparent.set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
 
     // Draw call
-    g_light_mesh.render();
+    g_light.object.mesh->render();
 
 
     // Swap buffers

@@ -7,7 +7,7 @@
 #include <glad/glad.h>
 #include <glm/mat4x4.hpp>
 
-#include "light.h"
+#include "point_light.h"
 #include "material.h"
 
 struct pipeline {
@@ -40,7 +40,7 @@ struct pipeline {
         void set_uniform(uniform u, glm::mat4& matrix);
         void set_uniform(uniform u, int input);
         void set_uniform(uniform u, float input);
-        void set_uniform(uniform u, light& light);
+        void set_uniform(uniform u, point_light& light);
         void set_uniform(uniform u, material& material);
         void set_uniform(uniform u, glm::vec3 vector);
 

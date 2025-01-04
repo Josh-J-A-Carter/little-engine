@@ -5,7 +5,7 @@
 
 #include "utilities.h"
 #include "pipeline.h"
-#include "light.h"
+#include "point_light.h"
 #include "material.h"
 
 void pipeline::initialise(std::vector<shader_src> shaders) {
@@ -105,10 +105,10 @@ void pipeline::set_uniform(uniform u, float input) {
     glUniform1f(get_uniform_location(u), input);
 }
 
-void pipeline::set_uniform(uniform u, light& light) {
+void pipeline::set_uniform(uniform u, point_light& light) {
     if (u != UNIFORM_LIGHT) return;
 
-    glUniform3fv(get_uniform_location(UNIFORM_LIGHT__POSITION), 1, &light.pos[0]);
+    glUniform3fv(get_uniform_location(UNIFORM_LIGHT__POSITION), 1, &light.object.transform.pos[0]);
     glUniform3fv(get_uniform_location(UNIFORM_LIGHT__COLOR), 1, &light.color[0]);
     glUniform1f(get_uniform_location(UNIFORM_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
     glUniform1f(get_uniform_location(UNIFORM_LIGHT__DIFFUSE_INTENSITY), light.diffuse_intensity);
