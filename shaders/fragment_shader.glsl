@@ -47,9 +47,9 @@ void main() {
     vec4 diffuse_color = vec4(u_dir_light.color, 1.0f) * vec4(u_material.diffuse_color, 1.0f) * u_dir_light.diffuse_intensity * diffuse;
 
     vec3 pixel_to_cam = normalize(u_camera_pos - v_world_pos);
-    vec3 reflection = normalize(reflect(u_dir_light.direction, v_normal));
-    float specular_base = dot(pixel_to_cam, -reflection);
-    float specular_exponent = texture2D(u_sampler_specular, v_texcoord0).r * 2000.0f;
+    vec3 reflection = normalize(reflect(u_dir_light.direction*10, v_normal*10));
+    float specular_base = dot(pixel_to_cam, reflection);
+    float specular_exponent = texture2D(u_sampler_specular, v_texcoord0).r * 255.0f;
     float specular = 0;
     if (specular_exponent > 0) specular = clamp(pow(specular_base, specular_exponent), 0, 1);
     
