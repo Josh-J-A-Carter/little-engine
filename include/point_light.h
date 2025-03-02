@@ -3,14 +3,15 @@
 
 #include <glm/vec3.hpp>
 
-#include "object.h"
+#include "transform.h"
+#include "light.h"
 
 struct point_light {
-    object object;
-    
-    glm::vec3 color { 1, 1, 1 };
-    float ambient_intensity { 0.1 };
-    float diffuse_intensity { 1 };
+    transform transform;
+    light base;
+    float attn_const { 1.0f };
+    float attn_linear { 1.0f };
+    float attn_exp { 0.0f };
 };
 
 #endif

@@ -30,8 +30,8 @@ std::vector<mesh> g_meshes {};
 pipeline g_pipeline {};
 pipeline g_transparent {};
 camera g_camera {};
-// point_light g_light {};
-directional_light g_dir_light {};
+std::vector<point_light> g_point_lights { {}, {} };
+std::vector<directional_light> g_dir_lights { {} };
 
 std::vector<object> g_opaque_objects {};
 
@@ -83,16 +83,26 @@ void setup() {
     // g_light.ambient_intensity = 0.2;
     // g_light.diffuse_intensity = 1.2;
 
-    g_dir_light.direction = { 1, 0, 0 };
-    g_dir_light.color = { 1.0, 0.7, 0.7 };
-    g_dir_light.ambient_intensity = 0.2;
-    g_dir_light.diffuse_intensity = 1;
+    g_dir_lights[0].direction = { 1, 0, 0 };
+    g_dir_lights[0].base.color = { 1.0, 0.7, 0.7 };
+    g_dir_lights[0].base.ambient_intensity = 0.2;
+    g_dir_lights[0].base.diffuse_intensity = 1;
 
+    g_point_lights[0].transform.pos = { 1, 0.5, 0 };
+    g_point_lights[0].attn_linear = 0.25f;
+    g_point_lights[0].base.color = { 0.0, 1.0, 1.0 };
+    g_point_lights[0].base.ambient_intensity = 0.5;
+    g_point_lights[0].base.diffuse_intensity = 1;
+
+    g_point_lights[1].transform.pos = { 0, 0.5, 0 };
+    g_point_lights[1].base.color = { 0.0, 1.0, 0.0 };
+    g_point_lights[1].base.ambient_intensity = 0.5;
+    g_point_lights[1].base.diffuse_intensity = 1;
 
     // Set up the camera
     g_camera = camera().init_pos({ 0, 0, 0 })
                        .init_aspect({ g_app.aspect() })
-                       .init_clip(0.1, 10);
+                       .init_clip(0.1, 100);
 }
 
 bool input() {
@@ -170,14 +180,19 @@ void draw() {
     glm::vec3 now = day + (night - day) * (-sin(time) * 0.5f + 0.5f);
 
     // Directional Light
-    g_dir_light.direction = { cos(time), -sin(time), 0 };
-    g_dir_light.diffuse_intensity = 1 * sin(time) * 1.5;
-    g_dir_light.specular_intensity = 1 * sin(time) * 1.5;
-    if (g_dir_light.diffuse_intensity < 0) {
-        g_dir_light.diffuse_intensity = 0;
-        g_dir_light.specular_intensity = 0;
+    g_dir_lights[0].direction = { cos(time), -sin(time), 0 };
+    g_dir_lights[0].base.diffuse_intensity = 1 * sin(time) * 1.5;
+    g_dir_lights[0].base.specular_intensity = 1 * sin(time) * 1.5;
+    if (g_dir_lights[0].base.diffuse_intensity < 0) {
+        g_dir_lights[0].base.diffuse_intensity = 0;
+        g_dir_lights[0].base.specular_intensity = 0;
     }
 
+    g_point_lights[0].transform.pos = { cos(time * 20), 0.5, sin(time * 20) };
+    std::cout << "pl pos: " << g_point_lights[0].transform.pos.x << ", "
+                            << g_point_lights[0].transform.pos.y << ", "
+                            << g_point_lights[0].transform.pos.z
+                            << std::endl;
 
     glClearColor(now.r, now.g, now.b, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -203,7 +218,8 @@ void draw() {
     g_pipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, SPECULAR_TEX_UNIT_INDEX);
 
     // Lights
-    g_pipeline.set_uniform(pipeline::UNIFORM_DIR_LIGHT, g_dir_light);
+    g_pipeline.set_uniform(pipeline::UNIFORM_DIR_LIGHTS, g_dir_lights);
+    g_pipeline.set_uniform(pipeline::UNIFORM_POINT_LIGHTS, g_point_lights);
 
     // Miscellaneous
     g_pipeline.set_uniform(pipeline::UNIFORM_CAMERA, g_camera.position());

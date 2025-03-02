@@ -1,3 +1,4 @@
+#include <vector>
 #include <string>
 #include <iostream>
 
@@ -73,12 +74,6 @@ GLint pipeline::get_uniform_location(uniform u) {
     else if (u == UNIFORM_SAMPLER_DIFFUSE) loc = glGetUniformLocation(m_program, "u_sampler_diffuse");
     else if (u == UNIFORM_SAMPLER_SPECULAR) loc = glGetUniformLocation(m_program, "u_sampler_specular");
 
-    else if (u == UNIFORM_DIR_LIGHT__DIRECTION) loc = glGetUniformLocation(m_program, "u_dir_light.direction");
-    else if (u == UNIFORM_DIR_LIGHT__COLOR) loc = glGetUniformLocation(m_program, "u_dir_light.color");
-    else if (u == UNIFORM_DIR_LIGHT__AMBIENT_INTENSITY) loc = glGetUniformLocation(m_program, "u_dir_light.ambient_intensity");
-    else if (u == UNIFORM_DIR_LIGHT__DIFFUSE_INTENSITY) loc = glGetUniformLocation(m_program, "u_dir_light.diffuse_intensity");
-    else if (u == UNIFORM_DIR_LIGHT__SPECULAR_INTENSITY) loc = glGetUniformLocation(m_program, "u_dir_light.specular_intensity");
-
     else if (u == UNIFORM_MATERIAL__AMBIENT_COLOR) loc = glGetUniformLocation(m_program, "u_material.ambient_color");
     else if (u == UNIFORM_MATERIAL__DIFFUSE_COLOR) loc = glGetUniformLocation(m_program, "u_material.diffuse_color");
     else if (u == UNIFORM_MATERIAL__SPECULAR_COLOR) loc = glGetUniformLocation(m_program, "u_material.specular_color");
@@ -111,24 +106,63 @@ void pipeline::set_uniform(uniform u, float input) {
     glUniform1f(get_uniform_location(u), input);
 }
 
-void pipeline::set_uniform(uniform u, directional_light& light) {
-    if (u != UNIFORM_DIR_LIGHT) return;
+void pipeline::set_uniform(uniform u, std::vector<directional_light> lights) {
+    if (u != UNIFORM_DIR_LIGHTS) return;
 
-    glUniform3fv(get_uniform_location(UNIFORM_DIR_LIGHT__DIRECTION), 1, &light.direction[0]);
-    glUniform3fv(get_uniform_location(UNIFORM_DIR_LIGHT__COLOR), 1, &light.color[0]);
-    glUniform1f(get_uniform_location(UNIFORM_DIR_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
-    glUniform1f(get_uniform_location(UNIFORM_DIR_LIGHT__DIFFUSE_INTENSITY), light.diffuse_intensity);
-    glUniform1f(get_uniform_location(UNIFORM_DIR_LIGHT__SPECULAR_INTENSITY), light.specular_intensity);
+    // How many directional lights in the vector?
+    glUniform1i(glGetUniformLocation(m_program, "u_num_dir_lights"), lights.size());
+
+    for (int i = 0 ; i < lights.size() ; i += 1) {
+        GLint loc { -1 };
+        char name[128];
+
+        // Base light fields
+        snprintf(name, sizeof(name), "u_dir_lights[%d].base.color", i);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].base.color[0]);
+        snprintf(name, sizeof(name), "u_dir_lights[%d].base.ambient_intensity", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.ambient_intensity);
+        snprintf(name, sizeof(name), "u_dir_lights[%d].base.diffuse_intensity", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.diffuse_intensity);
+        snprintf(name, sizeof(name), "u_dir_lights[%d].base.specular_intensity", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.specular_intensity);
+
+        // Directional light fields
+        snprintf(name, sizeof(name), "u_dir_lights[%d].direction", i);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].direction[0]);
+    }
 }
 
-// void pipeline::set_uniform(uniform u, point_light& light) {
-//     if (u != UNIFORM_LIGHT) return;
+void pipeline::set_uniform(uniform u, std::vector<point_light> lights) {
+    if (u != UNIFORM_POINT_LIGHTS) return;
 
-//     glUniform3fv(get_uniform_location(UNIFORM_LIGHT__POSITION), 1, &light.object.transform.pos[0]);
-//     glUniform3fv(get_uniform_location(UNIFORM_LIGHT__COLOR), 1, &light.color[0]);
-//     glUniform1f(get_uniform_location(UNIFORM_LIGHT__AMBIENT_INTENSITY), light.ambient_intensity);
-//     glUniform1f(get_uniform_location(UNIFORM_LIGHT__DIFFUSE_INTENSITY), light.diffuse_intensity);
-// }
+    // How many points lights in the vector?
+    glUniform1i(glGetUniformLocation(m_program, "u_num_point_lights"), lights.size());
+
+    for (int i = 0 ; i < lights.size() ; i += 1) {
+        GLint loc { -1 };
+        char name[128];
+
+        // Base light fields
+        snprintf(name, sizeof(name), "u_point_lights[%d].base.color", i);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].base.color[0]);
+        snprintf(name, sizeof(name), "u_point_lights[%d].base.ambient_intensity", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.ambient_intensity);
+        snprintf(name, sizeof(name), "u_point_lights[%d].base.diffuse_intensity", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.diffuse_intensity);
+        snprintf(name, sizeof(name), "u_point_lights[%d].base.specular_intensity", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.specular_intensity);
+
+        // Point light fields
+        snprintf(name, sizeof(name), "u_point_lights[%d].world_pos", i);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].transform.pos[0]);
+        snprintf(name, sizeof(name), "u_point_lights[%d].attn_const", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].attn_const);
+        snprintf(name, sizeof(name), "u_point_lights[%d].attn_linear", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].attn_linear);
+        snprintf(name, sizeof(name), "u_point_lights[%d].attn_exp", i);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i].attn_exp);
+    }
+}
 
 void pipeline::set_uniform(uniform u, material& material) {
     if (u != UNIFORM_MATERIAL) return;

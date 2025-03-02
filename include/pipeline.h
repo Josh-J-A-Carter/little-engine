@@ -19,12 +19,8 @@ struct pipeline {
             UNIFORM_PROJ_MAT,
             UNIFORM_SAMPLER_DIFFUSE,
             UNIFORM_SAMPLER_SPECULAR,
-            UNIFORM_DIR_LIGHT,
-            UNIFORM_DIR_LIGHT__DIRECTION,
-            UNIFORM_DIR_LIGHT__COLOR,
-            UNIFORM_DIR_LIGHT__AMBIENT_INTENSITY,
-            UNIFORM_DIR_LIGHT__DIFFUSE_INTENSITY,
-            UNIFORM_DIR_LIGHT__SPECULAR_INTENSITY,
+            UNIFORM_DIR_LIGHTS,
+            UNIFORM_POINT_LIGHTS,
             UNIFORM_MATERIAL,
             UNIFORM_MATERIAL__AMBIENT_COLOR,
             UNIFORM_MATERIAL__DIFFUSE_COLOR,
@@ -45,8 +41,8 @@ struct pipeline {
         void set_uniform(uniform u, glm::mat4& matrix);
         void set_uniform(uniform u, int input);
         void set_uniform(uniform u, float input);
-        // void set_uniform(uniform u, point_light& light);
-        void set_uniform(uniform u, directional_light& light);
+        void set_uniform(uniform u, std::vector<directional_light> lights);
+        void set_uniform(uniform u, std::vector<point_light> lights);
         void set_uniform(uniform u, material& material);
         void set_uniform(uniform u, glm::vec3 vector);
 
