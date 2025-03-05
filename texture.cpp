@@ -4,6 +4,7 @@
 #include "stb_image.h"
 
 #include "texture.h"
+#include "utilities.h"
 
 void texture::load() {
     stbi_set_flip_vertically_on_load(true);
@@ -30,7 +31,7 @@ void texture::load() {
     }
 
     else if (num_channels == 3) {
-        glTexImage2D(m_texture_target, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+        glTexImage2D(m_texture_target, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
     }
 
     else if (num_channels == 4) {
@@ -41,6 +42,8 @@ void texture::load() {
         std::cerr << "Texture type unsupported; unexpected number of color channels." << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    gl_error_check_barrier
 
     glTexParameterf(m_texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(m_texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

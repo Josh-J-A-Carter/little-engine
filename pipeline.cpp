@@ -54,7 +54,7 @@ void pipeline::add_shader(GLuint type, std::string file_name) {
         
         std::string shader_type = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
 
-        std::cerr << "Fatal: compilation error in " << shader_type << " shader." << std::endl;
+        std::cerr << "Fatal: compilation error in " << shader_type << " shader, " << file_name << std::endl;
         std::cerr << "Message:   " << error_msg << std::endl;
         exit(EXIT_FAILURE);
     }

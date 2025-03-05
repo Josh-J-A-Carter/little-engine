@@ -17,7 +17,7 @@ struct camera {
         
         float m_near { 0.1f };
         float m_far { 10 };
-        float m_fov { 45 };
+        float m_fov { 65 };
         float m_aspect { 1 };
 
     public:

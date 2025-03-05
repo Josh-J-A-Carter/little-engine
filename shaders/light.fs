@@ -1,4 +1,6 @@
-#version 410 core
+#version 300 es
+
+precision highp float;
 
 uniform float u_time;
 

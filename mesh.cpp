@@ -69,7 +69,7 @@ void mesh::init_from_scene(const aiScene* p_scene, const std::string& file_name)
     init_materials(p_scene, file_name);
 
     populate_buffers();
-
+    
     gl_error_check_barrier
 }
 
@@ -234,8 +234,8 @@ void mesh::render() {
             glBindTexture(GL_TEXTURE_2D, 0);
         }
 
-        glDrawElementsBaseVertex(GL_TRIANGLES, m_meshes[i].num_indices, GL_UNSIGNED_INT,
-                            (void*) (sizeof(m_indices[0]) * m_meshes[i].base_index), m_meshes[i].base_vertex);
+        glDrawElements(GL_TRIANGLES, m_meshes[i].num_indices, GL_UNSIGNED_INT,
+                            (void*) (sizeof(m_indices[0]) * m_meshes[i].base_index));
     }
 
     // Make sure the VAO is not changed from the outside

@@ -7,13 +7,16 @@
 
 #include "pipeline.h"
 
-#define DEFAULT_WIDTH 960
-#define DEFAULT_HEIGHT 720
+#define DEFAULT_WIDTH 1920
+#define DEFAULT_HEIGHT 1080
+#define DEFAULT_ASPECT DEFAULT_WIDTH / (DEFAULT_HEIGHT * 1.0f)
 
 struct application {
     private:
         int m_window_width { DEFAULT_WIDTH };
         int m_window_height { DEFAULT_HEIGHT };
+        int m_logical_width { DEFAULT_WIDTH };
+        int m_logical_height { DEFAULT_HEIGHT };
         SDL_Window* m_window {};
         SDL_GLContext m_openGL_context {};
 

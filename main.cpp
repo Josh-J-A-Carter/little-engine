@@ -3,8 +3,16 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <chrono>
+#include <thread>
 
-#include <SDL2/SDL.h>
+#ifdef __EMSCRIPTEN__
+#   include <emscripten.h>
+#   include <emscripten/html5.h>
+#   include <SDL.h>
+#else
+#   include <SDL2/SDL.h>
+#endif
 
 #include <glad/glad.h>
 
@@ -22,9 +30,6 @@
 #include "object.h"
 
 
-// #define NDEBUG
-
-
 application g_app {};
 std::vector<mesh> g_meshes {};
 pipeline g_pipeline {};
@@ -35,6 +40,16 @@ std::vector<directional_light> g_dir_lights { {} };
 
 std::vector<object> g_opaque_objects {};
 
+const float desired_fps = 1 / 60.0f;
+
+#ifdef __EMSCRIPTEN
+// Used for WebGL
+bool unfocused = true;
+#else
+bool unfocused = false;
+#endif
+
+float last_frame { 0 };
 
 void load_meshes() {
     mesh cube {};
@@ -56,11 +71,9 @@ void load_meshes() {
     g_opaque_objects.push_back({ .transform = { .pos = { 0, 0, -0.3 } }, .mesh = &g_meshes[0] });
     g_opaque_objects.push_back({ .transform = { .pos = { 0.2, 0.3, -0.3 }}, .mesh = &g_meshes[1] });
     g_opaque_objects.push_back({ .transform = { .pos = { 0, -0.2, 0 }}, .mesh = &g_meshes[2] });
-
-    // g_light.object.mesh = &g_meshes[3];
 }
 
-void setup() {
+void* setup() {
     g_app.create();
 
     g_pipeline.initialise(
@@ -78,10 +91,6 @@ void setup() {
     );
 
     load_meshes();
-
-    // g_light.color = { 1.0, 0.7, 0.7 };  
-    // g_light.ambient_intensity = 0.2;
-    // g_light.diffuse_intensity = 1.2;
 
     g_dir_lights[0].direction = { 1, 0, 0 };
     g_dir_lights[0].base.color = { 1.0, 0.7, 0.7 };
@@ -103,9 +112,13 @@ void setup() {
     g_camera = camera().init_pos({ 0, 0, 0 })
                        .init_aspect({ g_app.aspect() })
                        .init_clip(0.1, 100);
+    
+    return g_app.window();
 }
 
 bool input() {
+    float dt = g_app.program_time() - last_frame;
+
     // Update window - it may have been resized
     g_app.update();
     g_camera.init_aspect(g_app.aspect());
@@ -113,9 +126,10 @@ bool input() {
     static bool escaped = false;
     static bool just_pressed_escape = false;
 
-    if (!escaped) {
+    if (!escaped && !unfocused) {
         SDL_WarpMouseInWindow(g_app.window(), g_app.width() / 2, g_app.height() / 2);
         SDL_SetRelativeMouseMode(SDL_TRUE);
+        // std::cout << "capture" << std::endl;
     } else {
         SDL_SetRelativeMouseMode(SDL_FALSE);
     }
@@ -125,17 +139,18 @@ bool input() {
     while (SDL_PollEvent(&event) != 0) {
         if (event.type == SDL_QUIT) return true;
 
-        if (escaped) continue;
+        if (escaped || unfocused) continue;
 
         if (event.type == SDL_MOUSEMOTION) {
-            g_camera.rotate({ event.motion.xrel, event.motion.yrel });
+            g_camera.rotate({ event.motion.xrel * dt / desired_fps, event.motion.yrel * dt / desired_fps });
+            // std::cout << "rot" << std::endl;
         }
     }
 
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
-    if (!escaped) {
-        float speed { 0.001f };
+    if (!escaped && !unfocused) {
+        float speed { 0.01f * dt / desired_fps };
 
         if (state[SDL_SCANCODE_LCTRL]) speed *= 2;
 
@@ -147,8 +162,10 @@ bool input() {
 
         if (state[SDL_SCANCODE_SPACE]) g_camera.translate(g_camera.up() * speed);
         else if (state[SDL_SCANCODE_LSHIFT]) g_camera.translate(g_camera.up() * -speed);
+        // std::cout << "move" << std::endl;
     }
 
+#ifndef __EMSCRIPTEN__
     if (state[SDL_SCANCODE_ESCAPE] && !just_pressed_escape) {
         escaped = !escaped;
         just_pressed_escape = true;
@@ -157,6 +174,11 @@ bool input() {
     if (just_pressed_escape && !state[SDL_SCANCODE_ESCAPE]) {
         just_pressed_escape = false;
     }
+#else
+    if (state[SDL_SCANCODE_ESCAPE]) {
+        unfocused = true;
+    }
+#endif
 
     return false;
 }
@@ -183,22 +205,18 @@ void draw() {
     g_dir_lights[0].direction = { cos(time), -sin(time), 0 };
     g_dir_lights[0].base.diffuse_intensity = 1 * sin(time) * 1.5;
     g_dir_lights[0].base.specular_intensity = 1 * sin(time) * 1.5;
+
     if (g_dir_lights[0].base.diffuse_intensity < 0) {
         g_dir_lights[0].base.diffuse_intensity = 0;
         g_dir_lights[0].base.specular_intensity = 0;
     }
 
     g_point_lights[0].transform.pos = { cos(time * 20), 0.5, sin(time * 20) };
-    std::cout << "pl pos: " << g_point_lights[0].transform.pos.x << ", "
-                            << g_point_lights[0].transform.pos.y << ", "
-                            << g_point_lights[0].transform.pos.z
-                            << std::endl;
 
     glClearColor(now.r, now.g, now.b, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     // activate pipeline - this is appropriate location for iterating through multiple if needed
-
     g_pipeline.enable();
 
     //// ------ Camera Matrices ------
@@ -240,6 +258,8 @@ void draw() {
         // Draw call
         obj.mesh->render();
     }
+
+    gl_error_check_barrier
 
     // // Multiplicative blending
     // // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -286,20 +306,56 @@ void draw() {
     SDL_GL_SwapWindow(g_app.window());
 }
 
+void loop_instance(void* context) {
+    bool quit = input();
+
+    draw();
+
+    last_frame = g_app.program_time();
+}
+
 void loop() {
     bool quit = false;
 
     while (!quit) {
         quit = input();
-
+        
         draw();
-    }
+
+        last_frame = g_app.program_time();
+
+        int fps_ms = static_cast<int>(desired_fps * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(fps_ms));
+   }
 }
 
-int main(int argv, char** args)  {
-    setup();
+#ifdef __EMSCRIPTEN__
+bool focus_in(int eventType, const EmscriptenFocusEvent* focusEvent, void* userData) {
+    unfocused = false;
+    // std::cout << "Focus in" << std::endl;
+    return false;
+}
 
+bool focus_out(int eventType, const EmscriptenFocusEvent* focusEvent, void* userData) {
+    unfocused = true;
+    // std::cout << "Focus out" << std::endl;
+    return false;
+}
+#endif
+
+int main(int argv, char** args)  {
+    void* context = setup();
+
+    last_frame = g_app.program_time();
+
+#ifdef __EMSCRIPTEN__
+    int fps = 0;
+    emscripten_set_focusin_callback("#canvas.emscripten", (void*) nullptr, false, focus_in);
+    emscripten_set_focusout_callback("#canvas.emscripten", (void*) nullptr, false, focus_out);
+    emscripten_set_main_loop_arg(loop_instance, context, fps, true);
+#else
     loop();
+#endif
 
     return EXIT_SUCCESS;
 }

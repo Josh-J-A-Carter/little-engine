@@ -1,4 +1,6 @@
-#version 410
+#version 300 es
+
+precision highp float;
 
 const int MAX_POINT_LIGHTS = 100;
 const int MAX_DIR_LIGHTS = 10;
@@ -57,11 +59,11 @@ vec4 calc_base_light(light base, vec3 direction) {
     vec4 diffuse_color = vec4(base.color, 1.0f) * vec4(u_material.diffuse_color, 1.0f) * base.diffuse_intensity * diffuse;
 
     vec3 pixel_to_cam = normalize(u_camera_pos - v_world_pos);
-    vec3 reflection = normalize(reflect(direction * 10, v_normal * 10));
+    vec3 reflection = normalize(reflect(direction * 10.0f, v_normal * 10.0f));
     float specular_base = dot(pixel_to_cam, reflection);
-    float specular_exponent = texture2D(u_sampler_specular, v_texcoord0).r * 255.0f;
-    float specular = 0;
-    if (specular_exponent > 0) specular = clamp(pow(specular_base, specular_exponent), 0, 1);
+    float specular_exponent = texture(u_sampler_specular, v_texcoord0).r * 255.0f;
+    float specular = 0.0f;
+    if (specular_exponent > 0.0f) specular = clamp(pow(specular_base, specular_exponent), 0.0f, 1.0f);
     
     vec4 specular_color = vec4(base.color, 1.0f) * vec4(u_material.specular_color, 1.0f) * base.specular_intensity * specular;
 
@@ -72,7 +74,7 @@ vec4 calc_point_light(point_light light) {
     vec3 dir = v_world_pos - light.world_pos;
     vec4 unscaled_emission = calc_base_light(light.base, dir);
 
-    float d = length(dir) * 10;
+    float d = length(dir) * 10.0f;
     float scale_factor = light.attn_const + light.attn_linear * d + light.attn_exp * d * d;
     vec4 scaled_emission = unscaled_emission / scale_factor;
 
@@ -84,7 +86,7 @@ vec4 calc_dir_light(dir_light light) {
 }
 
 void main() {
-    vec4 total_light = vec4(0, 0, 0, 0);
+    vec4 total_light = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
     for (int i = 0 ; i < u_num_dir_lights ; i += 1) {
         total_light += calc_dir_light(u_dir_lights[i]);
@@ -94,5 +96,5 @@ void main() {
         total_light += calc_point_light(u_point_lights[i]);
     }
 
-    out_color = texture2D(u_sampler_diffuse, v_texcoord0) * total_light;
+    out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
 }

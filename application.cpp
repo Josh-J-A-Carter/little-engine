@@ -10,11 +10,14 @@ void application::create() {
         std::cerr << "Fatal: Could not initialise SDL2; aborting program." << std::endl;
         exit(EXIT_FAILURE);
     }
-
+#ifdef __EMSCRIPTEN__
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, true);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
@@ -23,9 +26,15 @@ void application::create() {
     int screen_width = DM.w;
     int screen_height = DM.h;
 
-    m_window = SDL_CreateWindow("Hello, OpenGL!",
+    m_window_width = screen_width;
+    m_window_height = screen_height * DEFAULT_ASPECT;
+
+    m_window = SDL_CreateWindow("OpenGL Renderer",
                                 (screen_width - m_window_width) / 2, (screen_height - m_window_height) / 2,
-                                m_window_width, m_window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
+                                m_window_width, m_window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
+
+    SDL_Renderer* renderer = SDL_GetRenderer(m_window);
+    SDL_RenderSetLogicalSize(renderer, m_logical_width, m_logical_height);
 
     if (!m_window) {
         std::cerr << "Fatal: Could not create SDL window; aborting program." << std::endl;
