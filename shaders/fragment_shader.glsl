@@ -60,7 +60,7 @@ vec4 calc_base_light(light base, vec3 direction) {
 
     vec3 pixel_to_cam = normalize(u_camera_pos - v_world_pos);
     vec3 reflection = normalize(reflect(direction * 10.0f, v_normal * 10.0f));
-    float specular_base = dot(pixel_to_cam, reflection);
+    float specular_base = clamp(dot(pixel_to_cam, reflection), 0.0f, 1.0f);
     float specular_exponent = texture(u_sampler_specular, v_texcoord0).r * 255.0f;
     float specular = 0.0f;
     if (specular_exponent > 0.0f) specular = clamp(pow(specular_base, specular_exponent), 0.0f, 1.0f);
