@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
-#include <iostream>
 #include <chrono>
 #include <thread>
 
@@ -28,6 +27,10 @@
 #include "point_light.h"
 #include "directional_light.h"
 #include "object.h"
+
+#include "arena.h"
+#include "script.h"
+#include "serialise.h"
 
 
 application g_app {};
@@ -344,6 +347,15 @@ bool focus_out(int eventType, const EmscriptenFocusEvent* focusEvent, void* user
 #endif
 
 int main(int argv, char** args)  {
+
+    arena arena { 512 };
+    script* sc = arena.allocate<script>();
+    std::ofstream out { "testoutput.txt" };
+    serialise(out, *sc);
+    out.close();
+
+    read_scene_from_file("testoutput.txt");
+
     void* context = setup();
 
     last_frame = g_app.program_time();

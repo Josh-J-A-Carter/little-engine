@@ -1,4 +1,5 @@
-emcc stb_image.cpp texture.cpp utilities.cpp pipeline.cpp application.cpp transform.cpp mesh.cpp camera.cpp main.cpp glad/src/glad.c \
+emcc stb_image.cpp texture.cpp utilities.cpp pipeline.cpp serialise.cpp \
+        application.cpp transform.cpp mesh.cpp camera.cpp main.cpp glad/src/glad.c \
         -o build/program.js \
         -I ./assimp/include/ -I ./glad/include -I ./glm -I ./include -I ./include/ \
         -L ./lib/wasm/ -lzlibstatic -lassimp \

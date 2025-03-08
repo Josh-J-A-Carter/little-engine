@@ -2,6 +2,10 @@
 #define UTILITIES_H
 
 #include <string>
+#include <variant>
+#include <algorithm> 
+#include <cctype>
+#include <locale>
 
 #define DIFFUSE_TEX_UNIT GL_TEXTURE0
 #define DIFFUSE_TEX_UNIT_INDEX 0
@@ -20,5 +24,26 @@ void process_gl_errors(const char* fn_call, int line_no);
 #define gl_error_check_barrier process_gl_errors("none", __LINE__);
 
 std::string load_from_file(const std::string& file_name);
+
+// trim from start (in place)
+inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+// trim from end (in place)
+inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+template <typename S, typename T>
+using option = std::variant<S, T>;
+
+struct error {
+    std::string message;
+};
 
 #endif
