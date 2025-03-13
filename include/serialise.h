@@ -12,26 +12,7 @@
 
 // Deserialisation
 
-class node {};
-
-class primitive_node : public node {
-    public:
-        std::string_view entry {};
-};
-
-class array_node : public node {
-    public:
-        std::vector<std::string_view> entries;
-};
-
-class object_node : public node {
-    public:
-        std::vector<std::pair<std::string_view, node*>> attributes;
-};
-
-
-
-option<node*, error> read_scene_from_file(arena& arena, std::string filename);
+void read_scene_from_file(arena& arena, std::string filename);
 
 
 // Serialisation

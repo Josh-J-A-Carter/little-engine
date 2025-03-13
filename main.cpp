@@ -356,7 +356,6 @@ int main(int argv, char** args)  {
     
     arena parse_arena { 1024 * 1024 };
     read_scene_from_file(parse_arena, "testoutput.txt");
-    std::cout << "Completed" << std::endl;
 
     void* context = setup();
 
