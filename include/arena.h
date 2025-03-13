@@ -22,7 +22,7 @@ struct arena {
         }
 
         template <typename T>
-        T* allocate() {
+        inline T* allocate() {
             if (next_loc == nullptr) return nullptr;
 
             if (next_loc >= final_loc) return nullptr;
@@ -31,7 +31,7 @@ struct arena {
 
             T* allocation = static_cast<T*>(next_loc);
             *allocation = {};
-
+            
             next_loc = next_loc + sizeof(T);
 
             return allocation;

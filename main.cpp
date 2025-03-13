@@ -348,13 +348,15 @@ bool focus_out(int eventType, const EmscriptenFocusEvent* focusEvent, void* user
 
 int main(int argv, char** args)  {
 
-    arena arena { 512 };
-    script* sc = arena.allocate<script>();
+    arena scrap_arena { 512 };
+    script* sc = scrap_arena.allocate<script>();
     std::ofstream out { "testoutput.txt" };
     serialise(out, *sc);
     out.close();
-
-    read_scene_from_file("testoutput.txt");
+    
+    arena parse_arena { 1024 * 1024 };
+    read_scene_from_file(parse_arena, "testoutput.txt");
+    std::cout << "Completed" << std::endl;
 
     void* context = setup();
 

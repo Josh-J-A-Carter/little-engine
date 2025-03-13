@@ -7,25 +7,31 @@
 #include <string>
 
 #include "utilities.h"
+#include "arena.h"
 
 
 // Deserialisation
 
 class node {};
 
-class primitive_node : node {
-    std::string_view entry;
+class primitive_node : public node {
+    public:
+        std::string_view entry {};
 };
 
-class array_node : node {
-    std::vector<std::string_view> entries;
+class array_node : public node {
+    public:
+        std::vector<std::string_view> entries;
 };
 
-class object_node : node {
-    std::vector<std::pair<std::string_view, node&>> attributes;
+class object_node : public node {
+    public:
+        std::vector<std::pair<std::string_view, node*>> attributes;
 };
 
-node* read_scene_from_file(std::string filename);
+
+
+option<node*, error> read_scene_from_file(arena& arena, std::string filename);
 
 
 // Serialisation

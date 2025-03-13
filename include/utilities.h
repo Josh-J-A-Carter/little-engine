@@ -25,6 +25,17 @@ void process_gl_errors(const char* fn_call, int line_no);
 
 std::string load_from_file(const std::string& file_name);
 
+inline void clearspace(std::string &s) {
+    std::string out {};
+    for ( char ch : s ) {
+        if (std::isspace(ch)) continue;
+
+        out += ch;
+    }
+
+    s.assign(out);
+}
+
 // trim from start (in place)
 inline void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
