@@ -351,14 +351,26 @@ int main(int argv, char** args)  {
     arena scrap_arena { 512 };
     script* sc = scrap_arena.allocate<script>();
     std::ofstream out { "testoutput.txt" };
-    serialise(out, *sc);
+    serial::serialise(out, *sc);
     out.close();
     
-    arena parse_arena { 1024 * 1024 };
-    read_scene_from_file(parse_arena, "testoutput.txt");
+    option<scene*, error> res = serial::read_scene_from_file("testoutput.txt");
+
+    if (std::holds_alternative<error>(res)) std::cout << std::get<error>(res).message << std::endl;
+
+    else {
+        std::cout << "Correctly parsed file as scene" << std::endl;
+
+        arena scrap_arena { 512 };
+        std::ofstream out { "testoutput2.txt" };
+        scene* new_scene = std::get<scene*>(res);
+        script* sc = static_cast<script*>(new_scene->root->component);
+        serial::serialise(out, *sc);
+        out.close();
+        std::cout << "Wrote to new file" << std::endl;
+    }
 
     void* context = setup();
-
     last_frame = g_app.program_time();
 
 #ifdef __EMSCRIPTEN__

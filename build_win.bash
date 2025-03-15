@@ -1,9 +1,9 @@
 # FILES=$(find | grep ".cpp$")
 # g++ ${FILES} -o program -I ./glad/include  -lmingw32 -lSDL2main -lSDL2
-g++ stb_image.cpp texture.cpp utilities.cpp pipeline.cpp serialise.cpp \
-        application.cpp transform.cpp mesh.cpp camera.cpp main.cpp glad/src/glad.c \
+g++ src/stb_image.cpp src/texture.cpp src/utilities.cpp src/pipeline.cpp src/serialise.cpp \
+        src/parse_types.cpp src/application.cpp src/transform.cpp src/mesh.cpp src/camera.cpp src/main.cpp glad/src/glad.c \
         -o build/program \
         -I ./assimp/include/ -I ./glad/include -I ./glm -I ./include \
         -lmingw32 -lSDL2main -lSDL2 -lassimp \
-        -Wno-pointer-arith
+        -Wno-pointer-arith -fpermissive
         # -D NDEBUG
