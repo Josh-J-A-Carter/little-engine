@@ -248,6 +248,23 @@ namespace serial {
         return parse(arena, contents, 0, contents.length() - 1);
     }
 
+    option<scene_node*, error> deserialise(arena& arena, node* n) {
+        if (object_node* obj = dynamic_cast<object_node*>(n)) {
+            option<node*, error> attr_type__res = get_node_attr(obj, "type");
+            if (std::holds_alternative<error>(attr_type__res)) return std::get<error>(attr_type__res);
+            if (primitive_node* p = dynamic_cast<primitive_node*>(std::get<node*>(attr_type__res))) {
+                // Finally, after all that unwrapping, we have the name of the type for this node.
+                // Now, we need to call the corresponding deserialisation method
+                std::string type = p->entry;
+                return deserialise_type(arena, n, type);
+            }
+            
+            else return error { "'Type' attribute contains data unrelated to the node's type" };
+        }
+        
+        return error { "Failed to parse node structure to scene; the node did not contain a JSON object." };
+    }
+
     option<scene*, error> parse_node_tree_to_scene(node* root) {
         scene* sc = new scene();
 

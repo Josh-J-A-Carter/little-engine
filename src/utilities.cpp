@@ -50,3 +50,15 @@ std::string load_from_file(const std::string& file_name) {
 
     return result;
 }
+
+std::string replace_all(const std::string& templ, const std::string& remove, const std::string& insert) {
+
+    std::string str { templ };
+    std::string::size_type pos = 0;
+    while ((pos = str.find(remove, pos)) != std::string::npos) {
+        str.replace(pos, remove.size(), insert);
+        pos += 1;
+    }
+
+    return str;
+}

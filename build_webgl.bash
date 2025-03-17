@@ -1,3 +1,5 @@
+
+./preprocessor.bash
 emcc src/stb_image.cpp src/texture.cpp src/utilities.cpp src/pipeline.cpp src/serialise.cpp \
         src/parse_types.cpp src/application.cpp src/transform.cpp src/mesh.cpp src/camera.cpp src/main.cpp src/glad/src/glad.c \
         -o build/program.js \

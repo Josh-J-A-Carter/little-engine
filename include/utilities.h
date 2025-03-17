@@ -3,7 +3,7 @@
 
 #include <string>
 #include <variant>
-#include <algorithm> 
+#include <algorithm>
 #include <cctype>
 #include <locale>
 
@@ -49,6 +49,8 @@ inline void rtrim(std::string &s) {
         return !std::isspace(ch);
     }).base(), s.end());
 }
+
+std::string replace_all(const std::string& templ, const std::string& remove, const std::string& insert);
 
 template <typename S, typename T>
 using option = std::variant<S, T>;

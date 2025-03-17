@@ -112,7 +112,7 @@ namespace serial {
         return arr;
     }
 
-    option<scene_node*, error> deserialise(arena& arena, node* n);
+    option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type);
 }
 
 // Utility macro for deserialising a field from a node hierarchy that has been extracted from a file.
@@ -158,6 +158,10 @@ namespace serial {
 // Serialisation
 #define REGISTER_PARSE_TYPE(X) template <> struct serial::TypeParseTraits<X> \
     { static const char* name; } ; inline const char* serial::TypeParseTraits<X>::name = #X;
+
+#define REGISTER_PARSE_REF(X) template <> struct serial::TypeParseTraits<X> \
+    { static const char* name; } ; inline const char* serial::TypeParseTraits<X>::name = #X;
+
 
 #define REPORT(SERIALISER, FIELD) SERIALISER.report(#FIELD, SERIALISER.object.FIELD);
 

@@ -18,7 +18,7 @@ struct script {
 };
 
 
-REGISTER_PARSE_TYPE(script);
+REGISTER_PARSE_REF(script);
 
 namespace serial {
     inline void serialise(std::ostream& os, const script& obj, int indt = 0) {
