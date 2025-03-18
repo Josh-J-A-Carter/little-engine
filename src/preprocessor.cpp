@@ -50,7 +50,12 @@ int main(int argv, char** args) {
 
     std::vector<std::string> types {};
 
+    // 
     // Read files to find the types that need code generated; this is signaled with the macro 'REGISTER_PARSE_REF'
+    // 
+
+    // Iterate through args = first arg is this file's name, the rest are
+    // relative paths to all the files we need to process.
     for (int i = 1 ; i < argv ; i += 1) {
         std::string filename { args[i] };
 
@@ -71,7 +76,8 @@ int main(int argv, char** args) {
     
             bool allowable = true;
             std::vector<std::string> matches {};
-    
+            
+            // If the match includes a #define, then it doesn't count
             for (auto submatch : match) {
                 if (submatch == "#define") {
                     allowable = false;
@@ -80,15 +86,19 @@ int main(int argv, char** args) {
     
                 matches.push_back(submatch);
             }
-    
+            
+            // We expect the second-to-last match to be the name of the type to use
             if (allowable && matches.size() >= 3) types.push_back(matches.at(matches.size() - 2));
     
             contents = match.suffix().str();
         }
     }
 
+    // 
     // Generate the code, with statements for each type
+    // 
 
+    // .cpp file
     std::string parse_types_cpp__template =
         "#include <string>\n"
         "#include \"serialise.h\"\n"
@@ -104,7 +114,11 @@ int main(int argv, char** args) {
 
         "namespace serial {\n"
         "   option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type) {\n"
-        "       if (type == \"empty\");\n\n"
+        "       if (type == \"empty\") {\n"
+        "           scene_node* sc = arena.allocate<scene_node>();\n"
+        "           sc->component_type = scene_node_type::empty;\n"
+        "           return sc;\n"
+        "       }\n\n"
 
         "       // Dynamic else-ifs\n"
 
@@ -128,11 +142,11 @@ int main(int argv, char** args) {
         "           sc->component_type = scene_node_type::{{type}};\n"
         "           sc->component = std::get<{{type}}*>(res);\n"
         "           return sc;\n"
-        "       }\n";
+        "       }\n\n";
 
     for (std::string type : types) {
-        dynamic_includes += replace_all(dynamic_includes_template, "{{type}}", type) + "\n";
-        dynamic_else_ifs += replace_all(dynamic_else_ifs_template, "{{type}}", type) + "\n";
+        dynamic_includes += replace_all(dynamic_includes_template, "{{type}}", type);
+        dynamic_else_ifs += replace_all(dynamic_else_ifs_template, "{{type}}", type);
     }
 
     std::string parse_types_cpp = replace_all(
@@ -142,8 +156,39 @@ int main(int argv, char** args) {
         "{{dynamic-else-ifs}}", dynamic_else_ifs
     );
 
-    std::cout << parse_types_cpp << std::endl;
+    // Overwrite the existing parse_types.cpp file
+    std::ofstream out_cpp { "./src/parse_types.cpp" };
+    out_cpp << parse_types_cpp << std::endl;
+    out_cpp.close();
 
+    // .h file
+    std::string parse_types_h__template =
+        "#ifndef PARSE_TYPES_H\n"
+        "#define PARSE_TYPES_H\n"
+        "\n"
+        "enum class scene_node_type {\n"
+        "    empty,\n"
+        "\n"
+        "    // Dynamic generation\n"
+        "    {{dynamic-enums}}"
+        "};\n"
+        "\n"
+        "#endif\n";
+
+    std::string dynamic_enums {};
+    std::string dynamic_enums_template =
+        "{{type}},\n";
+
+    for (std::string type : types) {
+        dynamic_enums += replace_all(dynamic_enums_template, "{{type}}", type);
+    }
+
+    std::string parse_types_h = replace_all(parse_types_h__template, "{{dynamic-enums}}", dynamic_enums);
+
+    // Overwrite the existing parse_types.h file
+    std::ofstream out_h { "./include/parse_types.h" };
+    out_h << parse_types_h << std::endl;
+    out_h.close();
 
     std::cout << "Code generation complete." << std::endl;
 }
