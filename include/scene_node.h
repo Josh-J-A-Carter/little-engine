@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "serialise.h"
 #include "parse_types.h"
 
 struct scene_node {
@@ -12,15 +11,26 @@ struct scene_node {
     scene_node_type component_type { scene_node_type::empty };
     void* component { nullptr };
 
-    void (*fn_render) () { nullptr };
-    void (*fn_load) () { nullptr };
-    void (*fn_run) () { nullptr };
-
-    void (*fn_script_start) () { nullptr };
-    void (*fn_script_run) () { nullptr };
-
+    void (*cmp_load)(scene_node*) { [](scene_node* _) {} };
+    void (*cmp_run)(scene_node*) { [](scene_node* _) {} };
+    void (*cmp_render)(scene_node*) { [](scene_node* _) {} };
+    
     scene_node* parent { nullptr };
     std::vector<scene_node*> children {};
+
+    public:
+        void load();
+        void run();
+        void render();
 };
+
+template<typename T>
+void render(T*) {}
+
+template<typename T>
+void load(T*) {}
+
+template<typename T>
+void run(T*) {}
 
 #endif

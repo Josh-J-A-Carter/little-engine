@@ -112,6 +112,8 @@ namespace serial {
         return arr;
     }
 
+    option<std::vector<scene_node*>, error> deserialise_list(arena& arena, node* n);
+
     option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type);
 }
 
@@ -174,29 +176,36 @@ namespace serial {
     template<typename T>
     struct TypeParseTraits;
 
+    void serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt);
+
     REGISTER_PARSE_TYPE(float)
-    inline void serialise(std::ostream& os, const float s, int indt = 0) {
+    inline void serialise(std::ostream& os, const float s, const scene_node* _, int indt) {
         os << s;
     }
 
     REGISTER_PARSE_TYPE(int)
-    inline void serialise(std::ostream& os, const int s, int indt = 0) {
+    inline void serialise(std::ostream& os, const int s, const scene_node* _, int indt) {
         os << s;
     }
 
     template <typename T>
-    void serialise(std::ostream& os, const std::vector<T> s, int indt = 0) {
+    void serialise(std::ostream& os, const std::vector<T> arr, const scene_node* sc, int indt) {
+        if (arr.empty()) {
+            os << "[]\n";
+            return;
+        }
+
         os << "[\n";
 
         int i_inner = indt + 1;
-        for (int i = 0 ; i < s.size() ; i += 1) {
+        for (int i = 0 ; i < arr.size() ; i += 1) {
             os << indent(i_inner);
-            serialise(os, s[i], i_inner + 1);
+            serialise(os, arr[i], sc, i_inner + 1);
 
-            os << (i < s.size() - 1 ? ",\n" : "\n");
+            os << (i < arr.size() - 1 ? ",\n" : "\n");
         }
 
-        os << indent(indt) << "]\n";
+        os << indent(indt) << "]";
     }
 
     template <typename S>
@@ -204,6 +213,7 @@ namespace serial {
         private:
             std::ostream& os;
             int indt { 0 };
+            const scene_node* sc { nullptr };
                     
         public:
             const S& object;
@@ -213,7 +223,20 @@ namespace serial {
                 os << indent(indt + 1) << "type: " << TypeParseTraits<S>::name;
             }
 
+            serialiser(std::ostream& os, const S& object, const scene_node* sc, int indt)
+                    : os { os }, object { object }, sc { sc }, indt { indt } {
+                os << "{\n";
+                os << indent(indt + 1) << "type: " << TypeParseTraits<S>::name;
+                if (sc) os << ",\n" << indent(indt + 1) << "name: " << sc->name;
+            }
+
             ~serialiser() {
+                // If this is coming from a scene-node, include child scene_nodes as an attribute
+                if (sc) {
+                    os << ",\n" << indent(indt + 1) << "children: ";
+                    serialise(os, sc->children, nullptr, indt + 2);
+                }
+
                 os << "\n" << indent(indt) << "}\n";
             }
 
@@ -221,7 +244,7 @@ namespace serial {
             inline void report(std::string field_name, T field_value) {
                 os << ",\n";
                 os << indent(indt + 1) << field_name << ": ";
-                serialise(os, field_value, indt + 2);
+                serialise(os, field_value, sc, indt + 2);
             }
     };
 }

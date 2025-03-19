@@ -40,11 +40,13 @@ namespace serial {
     }
 
     option<node*, error> parse_array(arena& arena, std::string_view str, int start, int end) {
-        if (start >= end) return { error { "Empty array." } };
-
+        
         // Find all pairs of indices in the string so that each pair encapsulates exactly one object
         std::stack<char> brace_stack {};
         array_node* n { arena.allocate<array_node>() };
+        
+        // Array is empty, so return early
+        if (start >= end) return { n };
 
         int entry_begin = start;
 
@@ -248,6 +250,24 @@ namespace serial {
         return parse(arena, contents, 0, contents.length() - 1);
     }
 
+    option<scene_node*, error> deserialise(arena& arena, node* n);
+
+    option<std::vector<scene_node*>, error> deserialise_list(arena& arena, node* n) {
+        if (array_node* arr = dynamic_cast<array_node*>(n)) {
+            std::vector<scene_node*> children {};
+
+            for (node* child : arr->entries) {
+                option<scene_node*, error> res = deserialise(arena, child);
+                if (std::holds_alternative<error>(res)) return std::get<error>(res);
+                children.push_back(std::get<scene_node*>(res));
+            }
+
+            return children;
+        }
+
+        return { error { "Failed to parse 'children' attribute as a list." } };
+    }
+
     option<scene_node*, error> deserialise(arena& arena, node* n) {
         if (object_node* obj = dynamic_cast<object_node*>(n)) {
             option<node*, error> attr_type__res = get_node_attr(obj, "type");
@@ -256,7 +276,29 @@ namespace serial {
                 // Finally, after all that unwrapping, we have the name of the type for this node.
                 // Now, we need to call the corresponding deserialisation method
                 std::string type = p->entry;
-                return deserialise_type(arena, n, type);
+                option<scene_node*, error> deser_type__res = deserialise_type(arena, n, type);
+                if (std::holds_alternative<error>(deser_type__res)) return std::get<error>(deser_type__res);
+                scene_node* sc = std::get<scene_node*>(deser_type__res);
+
+                // Does the node have a name?
+                option<node*, error> attr_name__res = get_node_attr(obj, "name");
+                if (std::holds_alternative<node*>(attr_name__res)) {
+                    if (primitive_node* name = dynamic_cast<primitive_node*>(std::get<node*>(attr_name__res))) {
+                        sc->name = name->entry;
+                    } else return error { "'name' attribute contained non-primitive structure." };
+                }
+
+                // Does the node have any children?
+                option<node*, error> attr_children__res = get_node_attr(obj, "children");
+                if (std::holds_alternative<node*>(attr_children__res)) {
+                    node* c = std::get<node*>(attr_children__res);
+                    option<std::vector<scene_node*>, error> deser_children__res = deserialise_list(arena, c);
+                    if (std::holds_alternative<error>(deser_children__res)) return std::get<error>(deser_children__res);
+                    sc->children = std::get<std::vector<scene_node*>>(deser_children__res);
+                    for (scene_node* child : sc->children) child->parent = sc;
+                }
+
+                return sc;
             }
             
             else return error { "'Type' attribute contains data unrelated to the node's type" };
@@ -282,7 +324,7 @@ namespace serial {
         // Parse the raw JSON to a tree data structure before further processing it
         arena* parse_arena = new arena { PARSE_ARENA_SIZE };
         option<node*, error> json_parse_result = parse_file_to_node_tree(*parse_arena, filename);
-        std::cout << "Completed parsing" << std::endl;
+        std::cout << "Completed parsing JSON to node tree" << std::endl;
         
         if (std::holds_alternative<error>(json_parse_result)) {
             std::cout << "Error: " << std::get<error>(json_parse_result).message << std::endl;
@@ -290,8 +332,8 @@ namespace serial {
             return std::get<error>(json_parse_result);
         }
         
-        std::cout << "Got node structure:" << std::endl;
-        std::get<node*>(json_parse_result)->print();
+        // std::cout << "Got node structure:" << std::endl;
+        // std::get<node*>(json_parse_result)->print();
         
         // Parse the tree structure into an actual scene
         option<scene*, error> node_parse_result = parse_node_tree_to_scene(std::get<node*>(json_parse_result));

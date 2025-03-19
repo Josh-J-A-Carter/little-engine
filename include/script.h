@@ -7,6 +7,7 @@
 #include "utilities.h"
 #include "serialise.h"
 #include "arena.h"
+#include "scene_node.h"
 
 struct script {
     int a { 0 };
@@ -21,10 +22,8 @@ struct script {
 REGISTER_PARSE_REF(script);
 
 namespace serial {
-    inline void serialise(std::ostream& os, const script& obj, int indt = 0) {
-        std::cout << "begin serialisation" << std::endl;
-
-        serial::serialiser<script> sr = { os, obj, indt };
+    inline void serialise(std::ostream& os, const script& obj, const scene_node* sc, int indt) {
+        serial::serialiser<script> sr = { os, obj, sc, indt };
 
         REPORT(sr, a)
         REPORT(sr, b)

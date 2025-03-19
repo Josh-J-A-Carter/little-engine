@@ -1,25 +1,3 @@
-// 
-// Reset template file for 'parse_types.cpp'
-// Reset template file for 'parse_types.h'
-// 
-// For each source file (*.cpp, *.h) inside /src and /include
-//   1)
-//      substr find 'REGISTER_PARSE_REF'
-//      if not found, close file and go to next.
-//   2)   
-//      found, so rewind file until:
-//          - start of file -> (3)
-//          - found "#define" statement -> (1)
-//          - string before does not contain 'define' -> (3)
-//   3)
-//      successful.
-//          - Create 'else if' clause in deserialise_type (parse_types.cpp)
-//          - Create '#include "T.h"' (parse_types.cpp)
-//          - Create 'T' in scene_node_type (parse_types.h)
-//
-// Confirm changes to files.
-// 
-
 #include <vector>
 #include <string>
 #include <iostream>
@@ -113,21 +91,31 @@ int main(int argv, char** args) {
 
 
         "namespace serial {\n"
-        "   option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type) {\n"
-        "       if (type == \"empty\") {\n"
-        "           scene_node* sc = arena.allocate<scene_node>();\n"
-        "           sc->component_type = scene_node_type::empty;\n"
-        "           return sc;\n"
-        "       }\n\n"
+        "    option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type) {\n"
+        "        if (type == \"empty\") {\n"
+        "            scene_node* sc = arena.allocate<scene_node>();\n"
+        "            sc->component_type = scene_node_type::empty;\n"
+        "            return sc;\n"
+        "        }\n\n"
 
-        "       // Dynamic else-ifs\n"
-
-
-        "       {{dynamic-else-ifs}}\n"
+        "        // Dynamic else-ifs\n"
 
 
-        "       return error { \"Type '\" + type + \"' not recognised when deserialising JSON to scene node.\" };\n"
-        "   }\n"
+        "        {{dynamic-else-ifs}}\n"
+
+
+        "        return error { \"Type '\" + type + \"' not recognised when deserialising JSON to scene node.\" };\n"
+        "    }\n"
+        "\n"
+        "    void serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt) {\n"
+        "        if (sc->component_type == scene_node_type::empty) os << \"{ type: empty }\";\n\n"
+        
+        "        // Dynamic serialisation stuff; scene nodes don't know how to serialise their component\n"
+        "        // as they don't know its type. Why didn't I just use polymorphism to be honest??? Too late!\n"
+
+        "        {{dynamic-serialisation}}"
+
+        "    }\n"
         "}\n";
 
     std::string dynamic_includes {};
@@ -136,22 +124,34 @@ int main(int argv, char** args) {
     std::string dynamic_else_ifs {};
     std::string dynamic_else_ifs_template =
         "else if (type == \"{{type}}\") {\n"
-        "           option<{{type}}*, error> res = deserialise_ref<{{type}}>(arena, n);\n"
-        "           if (std::holds_alternative<error>(res)) return std::get<error>(res);\n"
-        "           scene_node* sc = arena.allocate<scene_node>();\n"
-        "           sc->component_type = scene_node_type::{{type}};\n"
-        "           sc->component = std::get<{{type}}*>(res);\n"
-        "           return sc;\n"
-        "       }\n\n";
+        "            option<{{type}}*, error> res = deserialise_ref<{{type}}>(arena, n);\n"
+        "            if (std::holds_alternative<error>(res)) return std::get<error>(res);\n"
+        "            scene_node* sc = arena.allocate<scene_node>();\n"
+        "            {{type}}* obj = std::get<{{type}}*>(res);\n"
+        "            sc->component_type = scene_node_type::{{type}};\n"
+        "            sc->component = obj;\n"
+        "            sc->cmp_load = [](scene_node* sc) { load(static_cast<{{type}}*>(sc->component)); };\n"
+        "            sc->cmp_run = [](scene_node* sc) { run(static_cast<{{type}}*>(sc->component)); };\n"
+        "            sc->cmp_render = [](scene_node* sc) { render(static_cast<{{type}}*>(sc->component)); };\n"
+        "            return sc;\n"
+        "        }\n\n";
+
+    std::string dynamic_serialisation {};
+    std::string dynamic_serialisation_template =
+        "else if (sc->component_type == scene_node_type::{{type}}) {\n"
+        "            serialise(os, *static_cast<{{type}}*>(sc->component), sc, indt);\n"
+        "        }\n\n";
 
     for (std::string type : types) {
         dynamic_includes += replace_all(dynamic_includes_template, "{{type}}", type);
         dynamic_else_ifs += replace_all(dynamic_else_ifs_template, "{{type}}", type);
+        dynamic_serialisation += replace_all(dynamic_serialisation_template, "{{type}}", type);
     }
 
     std::string parse_types_cpp = replace_all(
         replace_all(
-            parse_types_cpp__template, "{{dynamic-includes}}", dynamic_includes
+            replace_all(parse_types_cpp__template, "{{dynamic-includes}}", dynamic_includes),
+            "{{dynamic-serialisation}}", dynamic_serialisation
         ),
         "{{dynamic-else-ifs}}", dynamic_else_ifs
     );
@@ -176,8 +176,7 @@ int main(int argv, char** args) {
         "#endif\n";
 
     std::string dynamic_enums {};
-    std::string dynamic_enums_template =
-        "{{type}},\n";
+    std::string dynamic_enums_template = "{{type}},\n";
 
     for (std::string type : types) {
         dynamic_enums += replace_all(dynamic_enums_template, "{{type}}", type);

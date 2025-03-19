@@ -348,24 +348,20 @@ bool focus_out(int eventType, const EmscriptenFocusEvent* focusEvent, void* user
 
 int main(int argv, char** args)  {
 
-    arena scrap_arena { 512 };
-    script* sc = scrap_arena.allocate<script>();
-    std::ofstream out { "testoutput.txt" };
-    serial::serialise(out, *sc);
-    out.close();
+    // arena scrap_arena { 512 };
+    // script* sc = scrap_arena.allocate<script>();
+    // std::ofstream out { "testoutput.txt" };
+    // serial::serialise(out, *sc, nullptr, 0);
+    // out.close();
     
     option<scene*, error> res = serial::read_scene_from_file("testoutput.txt");
-
     if (std::holds_alternative<error>(res)) std::cout << std::get<error>(res).message << std::endl;
-
     else {
         std::cout << "Correctly parsed file as scene" << std::endl;
 
-        arena scrap_arena { 512 };
         std::ofstream out { "testoutput2.txt" };
         scene* new_scene = std::get<scene*>(res);
-        script* sc = static_cast<script*>(new_scene->root->component);
-        serial::serialise(out, *sc);
+        serial::serialise(out, new_scene, nullptr, 0);
         out.close();
         std::cout << "Wrote to new file" << std::endl;
     }

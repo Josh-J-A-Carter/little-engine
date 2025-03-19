@@ -12,15 +12,15 @@ struct arena {
             destructor_node* next;
         };
 
-        void* initial_loc { nullptr };
-        void* next_loc { nullptr };
-        void* final_loc { nullptr };
+        char* initial_loc { nullptr };
+        char* next_loc { nullptr };
+        char* final_loc { nullptr };
 
         destructor_node* destructors { nullptr };
 
     public:
         arena(std::size_t size) {
-            initial_loc = malloc(size);
+            initial_loc = static_cast<char*>(malloc(size));
             next_loc = initial_loc;
             final_loc = next_loc + size;
         }
@@ -43,7 +43,7 @@ struct arena {
             if (next_loc >= final_loc) return nullptr;
             if (next_loc + sizeof(T) >= final_loc) return nullptr;
 
-            T* allocation = new (next_loc) T();
+            T* allocation = new (static_cast<void*>(next_loc)) T();
 
             destructor_node* next = new destructor_node {
                 [](void* obj) { static_cast<T*>(obj)->~T(); },
