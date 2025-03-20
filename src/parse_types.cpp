@@ -5,7 +5,9 @@
 #include "parse_types.h"
 
 // Dynamically generated includes
+#include "renderer.h"
 #include "script.h"
+#include "transform.h"
 
 namespace serial {
     option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type) {
@@ -16,6 +18,19 @@ namespace serial {
         }
 
         // Dynamic else-ifs
+        else if (type == "renderer") {
+            option<renderer*, error> res = deserialise_ref<renderer>(arena, n);
+            if (std::holds_alternative<error>(res)) return std::get<error>(res);
+            scene_node* sc = arena.allocate<scene_node>();
+            renderer* obj = std::get<renderer*>(res);
+            sc->component_type = scene_node_type::renderer;
+            sc->component = obj;
+            sc->cmp_load = [](scene_node* sc) { load(static_cast<renderer*>(sc->component)); };
+            sc->cmp_run = [](scene_node* sc) { run(static_cast<renderer*>(sc->component)); };
+            sc->cmp_render = [](scene_node* sc) { render(static_cast<renderer*>(sc->component)); };
+            return sc;
+        }
+
         else if (type == "script") {
             option<script*, error> res = deserialise_ref<script>(arena, n);
             if (std::holds_alternative<error>(res)) return std::get<error>(res);
@@ -29,6 +44,19 @@ namespace serial {
             return sc;
         }
 
+        else if (type == "transform") {
+            option<transform*, error> res = deserialise_ref<transform>(arena, n);
+            if (std::holds_alternative<error>(res)) return std::get<error>(res);
+            scene_node* sc = arena.allocate<scene_node>();
+            transform* obj = std::get<transform*>(res);
+            sc->component_type = scene_node_type::transform;
+            sc->component = obj;
+            sc->cmp_load = [](scene_node* sc) { load(static_cast<transform*>(sc->component)); };
+            sc->cmp_run = [](scene_node* sc) { run(static_cast<transform*>(sc->component)); };
+            sc->cmp_render = [](scene_node* sc) { render(static_cast<transform*>(sc->component)); };
+            return sc;
+        }
+
 
         return error { "Type '" + type + "' not recognised when deserialising JSON to scene node." };
     }
@@ -38,8 +66,16 @@ namespace serial {
 
         // Dynamic serialisation stuff; scene nodes don't know how to serialise their component
         // as they don't know its type. Why didn't I just use polymorphism to be honest??? Too late!
+        else if (sc->component_type == scene_node_type::renderer) {
+            serialise(os, *static_cast<renderer*>(sc->component), sc, indt);
+        }
+
         else if (sc->component_type == scene_node_type::script) {
             serialise(os, *static_cast<script*>(sc->component), sc, indt);
+        }
+
+        else if (sc->component_type == scene_node_type::transform) {
+            serialise(os, *static_cast<transform*>(sc->component), sc, indt);
         }
 
     }

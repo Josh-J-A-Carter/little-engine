@@ -5,7 +5,9 @@ enum class scene_node_type {
     empty,
 
     // Dynamic generation
+    renderer,
     script,
+    transform,
 };
 
 #endif

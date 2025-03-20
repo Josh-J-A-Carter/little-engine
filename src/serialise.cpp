@@ -97,6 +97,50 @@ namespace serial {
         return { n };
     }
 
+    option<int, error> split_key_value_pair(std::string_view str, int start, int end) {
+        // Yet again, we need the brace stack :sob:
+        std::stack<char> brace_stack {};
+
+        const int unfound = -1;
+        int first_colon = unfound;
+
+        for (int i = start ; i <= end ; i += 1) {
+            // Calculate the scope / how nested the object is at this current character
+            char c = str[i];
+
+            if (c == '{' || c == '[') brace_stack.push(c);
+
+            else if (c == '}') {
+                if (brace_stack.top() != '{' || brace_stack.size() <= 0) {
+                    return { error { "Malformed JSON. Closed curly brace with no matching opening brace." } };
+                }
+                
+                brace_stack.pop();
+            }
+
+            else if (c == ']') {
+                if (brace_stack.top() != '[' || brace_stack.size() <= 0) {
+                    return { error { "Malformed JSON. Closed square bracket with no matching opening bracket." } };
+                }
+                
+                brace_stack.pop();
+            }
+
+            // Are we in the main object scope?
+            if (brace_stack.empty()) {
+                if (c != ':') continue;
+
+                if (first_colon != unfound) return { error { "Too many colons. JSON must be structured as key-value pairs." } };
+
+                first_colon = i;
+            }
+        }
+
+        if (first_colon == unfound) return { error { "No colon found in key-value pair" } };
+
+        return { first_colon } ;
+    }
+
     option<node*, error> parse_object(arena& arena, std::string_view str, int start, int end) {
         if (start >= end) return { error { "Empty object." } };
         // Find all pairs of indices in the string such that str.substr(attributes[i][0], attributes[i][1]) is an attribute
@@ -154,27 +198,19 @@ namespace serial {
         for (std::pair<int, int> pair : attributes) {
             if (pair.first >= pair.second) return { error { "Empty object attribute." } };
 
-            // For this to be a valid attribute, there must exist exactly one colon between pair.first and pair.second.
-            int pos_first = str.find(":", pair.first);
-
-            if (pos_first == std::string::npos || pos_first > end) {
-                return { error { "Did not find colon in attribute. JSON must be structured as key-value pairs." } };
-            }
-            
-            int pos_second = str.find(":", pos_first + 1);
-    
-            if (pos_second != std::string::npos && pos_second <= pair.second) {
-                return { error { "Too many colons. JSON must be structured as key-value pairs." } };
-            }
+            // Get the pos of colon which separates the key from the value in this attribute
+            option<int, error> split_res = split_key_value_pair(str, pair.first, pair.second);
+            if (std::holds_alternative<error>(split_res)) return std::get<error>(split_res);
+            int pos_colon = std::get<int>(split_res);
 
             // The data is a valid key-value pair, so now we need to parse the value part further into a node.
-            option<node*, error> result = parse(arena, str, pos_first + 1, pair.second);
+            option<node*, error> result = parse(arena, str, pos_colon + 1, pair.second);
             if (std::holds_alternative<error>(result)) {
                 return result;
             }
 
             node* value = std::get<node*>(result);
-            n->attributes.push_back({ std::string(str.substr(pair.first, pos_first - pair.first)), value });
+            n->attributes.push_back({ std::string(str.substr(pair.first, pos_colon - pair.first)), value });
         }
 
         return { n };

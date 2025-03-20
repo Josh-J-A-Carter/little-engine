@@ -1,21 +1,29 @@
 #ifndef SERIALISE_H
 #define SERIALISE_H
 
+#include <iostream>
 #include <ostream>
 #include <fstream>
 #include <vector>
 #include <string>
 
-#include <iostream>
+#include <glm/vec3.hpp>
 
 #include "utilities.h"
 #include "arena.h"
 #include "scene.h"
 #include "scene_node.h"
 
+#include "parse_declarations.h"
+
 namespace serial {
 
+    // 
+    // 
     // Deserialisation
+    // 
+    // 
+
     class node {
         public:
             virtual void print() {}
@@ -72,6 +80,30 @@ namespace serial {
         primitive_node* p { static_cast<primitive_node*>(n) };
         return std::stof(p->entry);
     }
+
+    template<>
+    inline option<std::string, error> deserialise_val<std::string>(arena& arena, node* n) {
+        primitive_node* p { static_cast<primitive_node*>(n) };
+        return p->entry;
+    }
+
+    template<>
+    inline option<glm::vec3, error> deserialise_val<glm::vec3>(arena& arena, node* n) {
+        array_node* a { static_cast<array_node*>(n) };
+        glm::vec3 out {};
+
+        if (a->entries.size() != 3) return { error { "glm::vec3 does not contain three entries." } };
+
+        for (int index = 0 ; index < 3 ; index += 1) {
+            node* entry = a->entries[index];
+            option<float, error> res = deserialise_val<float>(arena, entry);
+            if (std::holds_alternative<error>(res)) return std::get<error>(res);
+            out[index] = std::get<float>(res);
+        }
+
+        return out;
+    }
+
 
     template<typename T>
     option<T*, error> deserialise_ref(arena& arena, node* n);
@@ -157,7 +189,12 @@ namespace serial {
     obj->field = std::get<t__##field>(res__ds_##field);
 
 
+// 
+// 
 // Serialisation
+// 
+// 
+
 #define REGISTER_PARSE_TYPE(X) template <> struct serial::TypeParseTraits<X> \
     { static const char* name; } ; inline const char* serial::TypeParseTraits<X>::name = #X;
 
@@ -176,16 +213,24 @@ namespace serial {
     template<typename T>
     struct TypeParseTraits;
 
+    void serialise(std::ostream& os, const scene* sc, const scene_node* _, int indt);
+
     void serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt);
 
-    REGISTER_PARSE_TYPE(float)
-    inline void serialise(std::ostream& os, const float s, const scene_node* _, int indt) {
+    inline void serialise(std::ostream& os, float s, const scene_node* _, int indt) {
         os << s;
     }
 
-    REGISTER_PARSE_TYPE(int)
-    inline void serialise(std::ostream& os, const int s, const scene_node* _, int indt) {
+    inline void serialise(std::ostream& os, int s, const scene_node* _, int indt) {
         os << s;
+    }
+
+    inline void serialise(std::ostream& os, std::string_view s, const scene_node* _, int indt) {
+        os << s;
+    }
+
+    inline void serialise(std::ostream& os, glm::vec3 v, const scene_node* _, int indt) {
+        os << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
     }
 
     template <typename T>
@@ -237,14 +282,16 @@ namespace serial {
                     serialise(os, sc->children, nullptr, indt + 2);
                 }
 
-                os << "\n" << indent(indt) << "}\n";
+                os << "\n" << indent(indt) << "}";
             }
 
             template <typename T>
             inline void report(std::string field_name, T field_value) {
                 os << ",\n";
                 os << indent(indt + 1) << field_name << ": ";
-                serialise(os, field_value, sc, indt + 2);
+                // Always send nullptr for the scene_node*, since we don't want child objects to reuse it
+                // - if the child objects are themselves scene_node*, then they can just use themselves
+                serialise(os, field_value, nullptr, indt + 2);
             }
     };
 }

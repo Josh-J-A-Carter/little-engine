@@ -23,6 +23,8 @@ REGISTER_PARSE_REF(script);
 
 namespace serial {
     inline void serialise(std::ostream& os, const script& obj, const scene_node* sc, int indt) {
+
+        std::cout << "serialise script" << std::endl;
         serial::serialiser<script> sr = { os, obj, sc, indt };
 
         REPORT(sr, a)

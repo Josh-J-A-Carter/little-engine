@@ -13,8 +13,4 @@ struct scene {
     scene_node* root { nullptr };
 };
 
-namespace serial {
-    void serialise(std::ostream& os, const scene* sc, const scene_node* _, int indt);
-}
-
 #endif

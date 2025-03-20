@@ -77,7 +77,7 @@ int main(int argv, char** args) {
     // 
 
     // .cpp file
-    std::string parse_types_cpp__template =
+    std::string parse_types_cpp_template =
         "#include <string>\n"
         "#include \"serialise.h\"\n"
         "#include \"scene_node.h\"\n"
@@ -101,7 +101,7 @@ int main(int argv, char** args) {
         "        // Dynamic else-ifs\n"
 
 
-        "        {{dynamic-else-ifs}}\n"
+                "{{dynamic-else-ifs}}\n"
 
 
         "        return error { \"Type '\" + type + \"' not recognised when deserialising JSON to scene node.\" };\n"
@@ -113,7 +113,9 @@ int main(int argv, char** args) {
         "        // Dynamic serialisation stuff; scene nodes don't know how to serialise their component\n"
         "        // as they don't know its type. Why didn't I just use polymorphism to be honest??? Too late!\n"
 
-        "        {{dynamic-serialisation}}"
+
+                "{{dynamic-serialisation}}"
+
 
         "    }\n"
         "}\n";
@@ -123,7 +125,7 @@ int main(int argv, char** args) {
 
     std::string dynamic_else_ifs {};
     std::string dynamic_else_ifs_template =
-        "else if (type == \"{{type}}\") {\n"
+        "        else if (type == \"{{type}}\") {\n"
         "            option<{{type}}*, error> res = deserialise_ref<{{type}}>(arena, n);\n"
         "            if (std::holds_alternative<error>(res)) return std::get<error>(res);\n"
         "            scene_node* sc = arena.allocate<scene_node>();\n"
@@ -138,7 +140,7 @@ int main(int argv, char** args) {
 
     std::string dynamic_serialisation {};
     std::string dynamic_serialisation_template =
-        "else if (sc->component_type == scene_node_type::{{type}}) {\n"
+        "        else if (sc->component_type == scene_node_type::{{type}}) {\n"
         "            serialise(os, *static_cast<{{type}}*>(sc->component), sc, indt);\n"
         "        }\n\n";
 
@@ -150,7 +152,7 @@ int main(int argv, char** args) {
 
     std::string parse_types_cpp = replace_all(
         replace_all(
-            replace_all(parse_types_cpp__template, "{{dynamic-includes}}", dynamic_includes),
+            replace_all(parse_types_cpp_template, "{{dynamic-includes}}", dynamic_includes),
             "{{dynamic-serialisation}}", dynamic_serialisation
         ),
         "{{dynamic-else-ifs}}", dynamic_else_ifs
@@ -162,7 +164,7 @@ int main(int argv, char** args) {
     out_cpp.close();
 
     // .h file
-    std::string parse_types_h__template =
+    std::string parse_types_h_template =
         "#ifndef PARSE_TYPES_H\n"
         "#define PARSE_TYPES_H\n"
         "\n"
@@ -170,24 +172,70 @@ int main(int argv, char** args) {
         "    empty,\n"
         "\n"
         "    // Dynamic generation\n"
-        "    {{dynamic-enums}}"
+
+
+            "{{dynamic-enums}}"
+
+
         "};\n"
         "\n"
         "#endif\n";
 
     std::string dynamic_enums {};
-    std::string dynamic_enums_template = "{{type}},\n";
+    std::string dynamic_enums_template = "    {{type}},\n";
 
     for (std::string type : types) {
         dynamic_enums += replace_all(dynamic_enums_template, "{{type}}", type);
     }
 
-    std::string parse_types_h = replace_all(parse_types_h__template, "{{dynamic-enums}}", dynamic_enums);
+    std::string parse_types_h = replace_all(parse_types_h_template, "{{dynamic-enums}}", dynamic_enums);
 
     // Overwrite the existing parse_types.h file
     std::ofstream out_h { "./include/parse_types.h" };
     out_h << parse_types_h << std::endl;
     out_h.close();
+
+    // declarations file
+    std::string parse_declarations_template =
+        "#ifndef PARSE_DECLARATIONS_H\n"
+        "#define PARSE_DECLARATIONS_H\n"
+        "\n"
+        "#include <ostream>\n"
+        "#include \"scene_node.h\"\n"
+        "\n"
+
+            "{{type-declarations}}\n"
+
+        "\n"
+        "namespace serial {\n"
+
+            "{{function-declarations}}\n"
+
+        "}\n"
+        "\n"
+        "#endif\n";
+
+    std::string type_declarations {};
+    std::string type_declarations_template = "struct {{type}};\n";
+
+    std::string function_declarations {};
+    std::string function_declarations_template =
+        "    void serialise(std::ostream& os, const {{type}}& obj, const scene_node* sc, int indt);\n";
+
+    for (std::string type : types) {
+        type_declarations += replace_all(type_declarations_template, "{{type}}", type);
+        function_declarations += replace_all(function_declarations_template, "{{type}}", type);
+    }
+
+    std::string parse_declarations = replace_all(
+        replace_all(parse_declarations_template, "{{type-declarations}}", type_declarations),
+        "{{function-declarations}}", function_declarations
+    );
+
+    // Overwrite the existing parse_declarations.h file
+    std::ofstream out_d { "./include/parse_declarations.h" };
+    out_d << parse_declarations << std::endl;
+    out_d.close();
 
     std::cout << "Code generation complete." << std::endl;
 }
