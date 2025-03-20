@@ -89,7 +89,8 @@ int main(int argv, char** args) {
 
         "{{dynamic-includes}}\n"
 
-
+        "struct pipeline;\n"
+        "\n"
         "namespace serial {\n"
         "    option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type) {\n"
         "        if (type == \"empty\") {\n"
@@ -134,7 +135,7 @@ int main(int argv, char** args) {
         "            sc->component = obj;\n"
         "            sc->cmp_load = [](scene_node* sc) { load(static_cast<{{type}}*>(sc->component)); };\n"
         "            sc->cmp_run = [](scene_node* sc) { run(static_cast<{{type}}*>(sc->component)); };\n"
-        "            sc->cmp_render = [](scene_node* sc) { render(static_cast<{{type}}*>(sc->component)); };\n"
+        "            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<{{type}}*>(sc->component), p); };\n"
         "            return sc;\n"
         "        }\n\n";
 

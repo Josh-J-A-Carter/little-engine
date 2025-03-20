@@ -262,6 +262,8 @@ void draw() {
         obj.mesh->render();
     }
 
+    g_app.render(g_pipeline);
+
     gl_error_check_barrier
 
     // // Multiplicative blending
@@ -347,27 +349,11 @@ bool focus_out(int eventType, const EmscriptenFocusEvent* focusEvent, void* user
 #endif
 
 int main(int argv, char** args)  {
-
-    // arena scrap_arena { 512 };
-    // script* sc = scrap_arena.allocate<script>();
-    // std::ofstream out { "testoutput.txt" };
-    // serial::serialise(out, *sc, nullptr, 0);
-    // out.close();
     
-    option<scene*, error> res = serial::read_scene_from_file("testoutput.txt");
-    if (std::holds_alternative<error>(res)) std::cout << std::get<error>(res).message << std::endl;
-    else {
-        std::cout << "Correctly parsed file as scene" << std::endl;
-
-        std::ofstream out { "testoutput2.txt" };
-        scene* new_scene = std::get<scene*>(res);
-        serial::serialise(out, new_scene, nullptr, 0);
-        out.close();
-        std::cout << "Wrote to new file" << std::endl;
-    }
-
     void* context = setup();
     last_frame = g_app.program_time();
+
+    g_app.load_scene("testoutput.txt");
 
 #ifdef __EMSCRIPTEN__
     int fps = 0;

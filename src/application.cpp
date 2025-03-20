@@ -1,7 +1,11 @@
 #include <iostream>
+#include <optional>
 
 #include "utilities.h"
 #include "application.h"
+#include "pipeline.h"
+#include "scene.h"
+#include "serialise.h"
 
 void application::create() {
     m_program_time_start = std::chrono::high_resolution_clock::now();
@@ -94,4 +98,18 @@ void application::update() {
 
     m_window_width = width;
     m_window_height = height;
+
+    m_scene->run();
+}
+
+std::optional<error> application::load_scene(std::string filename) {
+    option<scene*, error> res = serial::read_scene_from_file(filename);
+    if (std::holds_alternative<error>(res)) return std::get<error>(res);
+
+    m_scene = std::get<scene*>(res);
+    return std::nullopt;
+}
+
+void application::render(pipeline& p) {
+    if (m_scene) m_scene->render(p);
 }

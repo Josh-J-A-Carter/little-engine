@@ -6,14 +6,16 @@
 
 #include "parse_types.h"
 
+struct pipeline;
+
 struct scene_node {
     std::string name { "Object" };
     scene_node_type component_type { scene_node_type::empty };
     void* component { nullptr };
 
-    void (*cmp_load)(scene_node*) { [](scene_node* _) {} };
-    void (*cmp_run)(scene_node*) { [](scene_node* _) {} };
-    void (*cmp_render)(scene_node*) { [](scene_node* _) {} };
+    void (*cmp_load)(scene_node*) { [](scene_node*) {} };
+    void (*cmp_run)(scene_node*) { [](scene_node*) {} };
+    void (*cmp_render)(scene_node*, pipeline&) { [](scene_node*, pipeline&) {} };
     
     scene_node* parent { nullptr };
     std::vector<scene_node*> children {};
@@ -21,11 +23,11 @@ struct scene_node {
     public:
         void load();
         void run();
-        void render();
+        void render(pipeline& p);
 };
 
 template<typename T>
-void render(T*) {}
+void render(T*, pipeline&) {}
 
 template<typename T>
 void load(T*) {}

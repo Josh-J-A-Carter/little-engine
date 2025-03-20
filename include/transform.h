@@ -14,7 +14,7 @@ struct transform {
     glm::mat4 get_model_matrix() const;
 };
 
-REGISTER_PARSE_REF(transform);
+REGISTER_PARSE_REF(transform)
 
 namespace serial {
     inline void serialise(std::ostream& os, const transform& obj, const scene_node* sc, int indt) {

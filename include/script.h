@@ -2,7 +2,6 @@
 #define SCRIPT_H
 
 #include <ostream>
-#include <iostream>
 
 #include "utilities.h"
 #include "serialise.h"
@@ -18,13 +17,10 @@ struct script {
     std::vector<int> r { 1, 2, 3, 4 };
 };
 
-
-REGISTER_PARSE_REF(script);
+REGISTER_PARSE_REF(script)
 
 namespace serial {
     inline void serialise(std::ostream& os, const script& obj, const scene_node* sc, int indt) {
-
-        std::cout << "serialise script" << std::endl;
         serial::serialiser<script> sr = { os, obj, sc, indt };
 
         REPORT(sr, a)

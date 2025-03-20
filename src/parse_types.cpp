@@ -9,6 +9,8 @@
 #include "script.h"
 #include "transform.h"
 
+struct pipeline;
+
 namespace serial {
     option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type) {
         if (type == "empty") {
@@ -27,7 +29,7 @@ namespace serial {
             sc->component = obj;
             sc->cmp_load = [](scene_node* sc) { load(static_cast<renderer*>(sc->component)); };
             sc->cmp_run = [](scene_node* sc) { run(static_cast<renderer*>(sc->component)); };
-            sc->cmp_render = [](scene_node* sc) { render(static_cast<renderer*>(sc->component)); };
+            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<renderer*>(sc->component), p); };
             return sc;
         }
 
@@ -40,7 +42,7 @@ namespace serial {
             sc->component = obj;
             sc->cmp_load = [](scene_node* sc) { load(static_cast<script*>(sc->component)); };
             sc->cmp_run = [](scene_node* sc) { run(static_cast<script*>(sc->component)); };
-            sc->cmp_render = [](scene_node* sc) { render(static_cast<script*>(sc->component)); };
+            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<script*>(sc->component), p); };
             return sc;
         }
 
@@ -53,7 +55,7 @@ namespace serial {
             sc->component = obj;
             sc->cmp_load = [](scene_node* sc) { load(static_cast<transform*>(sc->component)); };
             sc->cmp_run = [](scene_node* sc) { run(static_cast<transform*>(sc->component)); };
-            sc->cmp_render = [](scene_node* sc) { render(static_cast<transform*>(sc->component)); };
+            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<transform*>(sc->component), p); };
             return sc;
         }
 

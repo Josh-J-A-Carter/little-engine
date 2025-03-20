@@ -1,5 +1,7 @@
 #include "scene_node.h"
 
+struct pipeline;
+
 void scene_node::load() {
     cmp_load(this);
 
@@ -16,10 +18,10 @@ void scene_node::run() {
     }
 }
 
-void scene_node::render() {
-    cmp_render(this);
+void scene_node::render(pipeline& p) {
+    cmp_render(this, p);
 
     for (scene_node* child : children) {
-        child->render();
+        child->render(p);
     }
 }
