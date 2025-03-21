@@ -354,6 +354,7 @@ int main(int argv, char** args)  {
     last_frame = g_app.program_time();
 
     g_app.load_scene("testoutput.txt");
+    g_app.save_scene("testoutput2.txt");
 
 #ifdef __EMSCRIPTEN__
     int fps = 0;

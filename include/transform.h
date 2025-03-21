@@ -36,7 +36,7 @@ namespace serial {
     }
 
     template <>
-    inline option<transform*, error> deserialise_ref<transform>(arena& arena, node* n) {
+    inline option<transform*, error> deserialise_ref<transform>(arena& arena, scene_node* root, node* n) {
         transform* tr = arena.allocate<transform>();
 
         DESERIALISE_VAL(tr, n, pos)

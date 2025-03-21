@@ -20,10 +20,12 @@ struct scene_node {
     scene_node* parent { nullptr };
     std::vector<scene_node*> children {};
 
-    public:
-        void load();
-        void run();
-        void render(pipeline& p);
+    bool is_valid { true };
+    int id { -1 };
+
+    void load();
+    void run();
+    void render(pipeline& p);
 };
 
 template<typename T>

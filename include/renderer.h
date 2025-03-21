@@ -44,7 +44,7 @@ namespace serial {
     }
 
     template <>
-    inline option<renderer*, error> deserialise_ref<renderer>(arena& arena, node* n) {
+    inline option<renderer*, error> deserialise_ref<renderer>(arena& arena, scene_node* root, node* n) {
         renderer* r = arena.allocate<renderer>();
 
         DESERIALISE_VAL(r, n, m_transform)

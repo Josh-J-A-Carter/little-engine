@@ -52,6 +52,8 @@ struct application {
         void render(pipeline& p);
 
         std::optional<error> load_scene(std::string);
+
+        std::optional<error> save_scene(std::string);
 };
 
 #endif

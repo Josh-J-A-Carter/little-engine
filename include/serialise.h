@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <optional>
 
 #include <glm/vec3.hpp>
 
@@ -106,7 +107,7 @@ namespace serial {
 
 
     template<typename T>
-    option<T*, error> deserialise_ref(arena& arena, node* n);
+    option<T*, error> deserialise_ref(arena& arena, scene_node* root, node* n);
 
     inline option<node*, error> get_node_attr(object_node* n, std::string attr_name) {
         for (int i = 0 ; i < n->attributes.size() ; i += 1) {
@@ -131,12 +132,12 @@ namespace serial {
     }
 
     template<typename T>
-    option<std::vector<T*>, error> deserialise_vec_ref(arena& arena, node* n) {
+    option<std::vector<T*>, error> deserialise_vec_ref(arena& arena, scene_node* root, node* n) {
         array_node* a { static_cast<array_node*>(n) };
         std::vector<T> arr {};
 
         for (node* entry : a->entries) {
-            option<T*, error> res = deserialise_ref<T>(arena, entry);
+            option<T*, error> res = deserialise_ref<T>(arena, root, entry);
             if (std::holds_alternative<error>(res)) return std::get<error>(res);
             arr.push_back(std::get<T*>(res));
         }
@@ -144,29 +145,27 @@ namespace serial {
         return arr;
     }
 
-    option<std::vector<scene_node*>, error> deserialise_list(arena& arena, node* n);
-
-    option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type);
+    std::optional<error> deserialise_type(arena& arena, scene_node* sc, scene_node* root, node* n, std::string type);
 }
 
 // Utility macro for deserialising a field from a node hierarchy that has been extracted from a file.
 // First, it finds the node inside the hierarchy that corresponds to the desired field.
 // Then, it parses that node to the required type, and stores the result in the field.
-#define DESERIALISE_REF(obj, arena, n, field) \
+#define DESERIALISE_REF(obj, arena, root, n, field) \
     option<node*, error> res__attr_##field = get_node_attr(static_cast<object_node*>(n), #field); \
     if (std::holds_alternative<error>(res__attr_##field)) return std::get<error>(res__attr_##field); \
     node* n__##field = std::get<node*>(res__attr_##field); \
     using t__##field = decltype(obj->field); \
-    option<t__##field, error> res__ds_##field = deserialise_ref<t__##field>(arena, n__##field); \
+    option<t__##field, error> res__ds_##field = deserialise_ref<t__##field>(arena, root, n__##field); \
     if (std::holds_alternative<error>(res__ds_##field)) return std::get<error>(res__ds_##field); \
     obj->field = std::get<t__##field>(res__ds_##field);
 
-#define DESERIALISE_VEC_REF(obj, arena, n, field) \
+#define DESERIALISE_VEC_REF(obj, arena, root, n, field) \
     option<node*, error> res__##field = get_node_attr(static_cast<object_node*>(n), #field); \
     if (std::holds_alternative<error>(res__##field)) return std::get<error>(res__##field); \
     node* n__##field = std::get<node*>(res__##field); \
     using t__##field = decltype(obj->field)::value_type; \
-    option<std::vector<t__##field>, error> res__ds_##field = deserialise_vec_ref<t__##field>(arena, n__##field); \
+    option<std::vector<t__##field>, error> res__ds_##field = deserialise_vec_ref<t__##field>(arena, root, n__##field); \
     if (std::holds_alternative<error>(res__ds_##field)) return std::get<error>(res__ds_##field); \
     obj->field = std::get<std::vector<t__##field>>(res__ds_##field);
 
@@ -213,7 +212,9 @@ namespace serial {
     template<typename T>
     struct TypeParseTraits;
 
-    void serialise(std::ostream& os, const scene* sc, const scene_node* _, int indt);
+    void serialise_scene(std::ostream& os, const scene* sc);
+
+    void serialise_node(std::ostream& os, const scene_node* sc, int indt);
 
     void serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt);
 
@@ -272,14 +273,29 @@ namespace serial {
                     : os { os }, object { object }, sc { sc }, indt { indt } {
                 os << "{\n";
                 os << indent(indt + 1) << "type: " << TypeParseTraits<S>::name;
+                if (sc) os << ",\n" << indent(indt + 1) << "id: " << sc->id;
                 if (sc) os << ",\n" << indent(indt + 1) << "name: " << sc->name;
             }
 
             ~serialiser() {
                 // If this is coming from a scene-node, include child scene_nodes as an attribute
                 if (sc) {
-                    os << ",\n" << indent(indt + 1) << "children: ";
-                    serialise(os, sc->children, nullptr, indt + 2);
+                    if (sc->children.empty()) {
+                        os << ",\n" << indent(indt + 1) << "children: []";
+                    }
+
+                    else {
+                        os << ",\n" << indent(indt + 1) << "children: [\n";
+    
+                        int i_inner = indt + 2;
+                        for (int i = 0 ; i < sc->children.size() ; i += 1) {
+                            os << indent(i_inner);
+                            serialise_node(os, sc->children[i], i_inner);
+                            os << (i < sc->children.size() - 1 ? ",\n" : "\n");
+                        }
+                
+                        os << indent(indt + 1) << "]";
+                    }
                 }
 
                 os << "\n" << indent(indt) << "}";

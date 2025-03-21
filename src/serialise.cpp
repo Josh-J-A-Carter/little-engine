@@ -6,6 +6,7 @@
 #include "scene_node.h"
 #include "scene.h"
 
+#include <optional>
 #include <iostream>
 
 #define PARSE_ARENA_SIZE 1024 * 1024 // = 1 MiB
@@ -286,14 +287,14 @@ namespace serial {
         return parse(arena, contents, 0, contents.length() - 1);
     }
 
-    option<scene_node*, error> deserialise(arena& arena, node* n);
+    option<scene_node*, error> deserialise_primary(arena& arena, node* n);
 
-    option<std::vector<scene_node*>, error> deserialise_list(arena& arena, node* n) {
+    option<std::vector<scene_node*>, error> deserialise_primary_list(arena& arena, node* n) {
         if (array_node* arr = dynamic_cast<array_node*>(n)) {
             std::vector<scene_node*> children {};
 
             for (node* child : arr->entries) {
-                option<scene_node*, error> res = deserialise(arena, child);
+                option<scene_node*, error> res = deserialise_primary(arena, child);
                 if (std::holds_alternative<error>(res)) return std::get<error>(res);
                 children.push_back(std::get<scene_node*>(res));
             }
@@ -304,55 +305,92 @@ namespace serial {
         return { error { "Failed to parse 'children' attribute as a list." } };
     }
 
-    option<scene_node*, error> deserialise(arena& arena, node* n) {
+    option<scene_node*, error> deserialise_primary(arena& arena, node* n) {
         if (object_node* obj = dynamic_cast<object_node*>(n)) {
-            option<node*, error> attr_type__res = get_node_attr(obj, "type");
-            if (std::holds_alternative<error>(attr_type__res)) return std::get<error>(attr_type__res);
-            if (primitive_node* p = dynamic_cast<primitive_node*>(std::get<node*>(attr_type__res))) {
-                // Finally, after all that unwrapping, we have the name of the type for this node.
-                // Now, we need to call the corresponding deserialisation method
-                std::string type = p->entry;
-                option<scene_node*, error> deser_type__res = deserialise_type(arena, n, type);
-                if (std::holds_alternative<error>(deser_type__res)) return std::get<error>(deser_type__res);
-                scene_node* sc = std::get<scene_node*>(deser_type__res);
+            scene_node* sc = arena.allocate<scene_node>();
 
-                // Does the node have a name?
-                option<node*, error> attr_name__res = get_node_attr(obj, "name");
-                if (std::holds_alternative<node*>(attr_name__res)) {
-                    if (primitive_node* name = dynamic_cast<primitive_node*>(std::get<node*>(attr_name__res))) {
-                        sc->name = name->entry;
-                    } else return error { "'name' attribute contained non-primitive structure." };
-                }
+            // What is the node's ID? This must be specified
+            option<node*, error> attr_id__res = get_node_attr(obj, "id");
+            if (std::holds_alternative<error>(attr_id__res)) return std::get<error>(attr_id__res);
+            if (primitive_node* id = dynamic_cast<primitive_node*>(std::get<node*>(attr_id__res))) {
+                sc->id = std::stoi(id->entry);
+            } else return error { "'name' attribute contained non-primitive structure." };
 
-                // Does the node have any children?
-                option<node*, error> attr_children__res = get_node_attr(obj, "children");
-                if (std::holds_alternative<node*>(attr_children__res)) {
-                    node* c = std::get<node*>(attr_children__res);
-                    option<std::vector<scene_node*>, error> deser_children__res = deserialise_list(arena, c);
-                    if (std::holds_alternative<error>(deser_children__res)) return std::get<error>(deser_children__res);
-                    sc->children = std::get<std::vector<scene_node*>>(deser_children__res);
-                    for (scene_node* child : sc->children) child->parent = sc;
-                }
-
-                return sc;
+            // Does the node have a name?
+            option<node*, error> attr_name__res = get_node_attr(obj, "name");
+            if (std::holds_alternative<node*>(attr_name__res)) {
+                if (primitive_node* name = dynamic_cast<primitive_node*>(std::get<node*>(attr_name__res))) {
+                    sc->name = name->entry;
+                } else return error { "'name' attribute contained non-primitive structure." };
             }
-            
-            else return error { "'Type' attribute contains data unrelated to the node's type" };
+
+            // Does the node have any children?
+            option<node*, error> attr_children__res = get_node_attr(obj, "children");
+            if (std::holds_alternative<node*>(attr_children__res)) {
+                node* c = std::get<node*>(attr_children__res);
+                option<std::vector<scene_node*>, error> deser_children__res = deserialise_primary_list(arena, c);
+                if (std::holds_alternative<error>(deser_children__res)) return std::get<error>(deser_children__res);
+                sc->children = std::get<std::vector<scene_node*>>(deser_children__res);
+                for (scene_node* child : sc->children) child->parent = sc;
+            }
+
+            return sc;
         }
         
         return error { "Failed to parse node structure to scene; the node did not contain a JSON object." };
     }
 
+    std::optional<error> deserialise_secondary(arena& arena, scene_node* sc, scene_node* root, node* n);
+
+    std::optional<error> deserialise_secondary_list(arena& arena, scene_node* sc, scene_node* root, node* n) {
+        array_node* arr = static_cast<array_node*>(n);
+        
+        for (int i = 0 ; i < sc->children.size() ; i += 1) {
+            std::optional<error> res = deserialise_secondary(arena, sc->children[i], root, arr->entries[i]);
+            if (res.has_value()) return res;
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<error> deserialise_secondary(arena& arena, scene_node* sc, scene_node* root, node* n) {
+        object_node* obj = static_cast<object_node*>(n);
+
+        // Get the 'type' attribute, and the data that is associated with it
+        option<node*, error> attr_type__res = get_node_attr(obj, "type");
+        if (std::holds_alternative<error>(attr_type__res)) return std::get<error>(attr_type__res);
+        if (primitive_node* p = dynamic_cast<primitive_node*>(std::get<node*>(attr_type__res))) {
+            // Finally, after all that unwrapping, we have the name of the type for this node.
+            // Now, we need to call the corresponding deserialisation method
+            std::string type = p->entry;
+            std::optional<error> res = deserialise_type(arena, sc, root, n, type);
+            if (res.has_value()) return res;
+
+            // Tell child nodes to unwrap as well
+            option<node*, error> attr_children__res = get_node_attr(obj, "children");
+            if (std::holds_alternative<node*>(attr_children__res)) {
+                node* c = std::get<node*>(attr_children__res);
+                return deserialise_secondary_list(arena, sc, root, c);
+            }
+        }
+            
+        else return error { "'Type' attribute contains data unrelated to the node's type" };
+        
+        return std::nullopt;
+    }    
+
     option<scene*, error> parse_node_tree_to_scene(node* root) {
         scene* sc = new scene();
 
-        option<scene_node*, error> result = deserialise(sc->arena, root);
+        option<scene_node*, error> result = deserialise_primary(sc->arena, root);
         if (std::holds_alternative<error>(result)) {
             delete sc;
             return std::get<error>(result);
         }
 
         sc->root = std::get<scene_node*>(result);
+        std::optional<error> final_res = deserialise_secondary(sc->arena, sc->root, sc->root, root);
+        if (final_res.has_value()) return final_res.value();
         return sc;
     }
 

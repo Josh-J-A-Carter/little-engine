@@ -1,5 +1,6 @@
 #include <iostream>
 #include <optional>
+#include <ostream>
 
 #include "utilities.h"
 #include "application.h"
@@ -107,6 +108,13 @@ std::optional<error> application::load_scene(std::string filename) {
     if (std::holds_alternative<error>(res)) return std::get<error>(res);
 
     m_scene = std::get<scene*>(res);
+    return std::nullopt;
+}
+
+std::optional<error> application::save_scene(std::string filename) {
+    std::ofstream out { filename };
+    serial::serialise_scene(out, m_scene);
+
     return std::nullopt;
 }
 

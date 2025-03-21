@@ -79,6 +79,8 @@ int main(int argv, char** args) {
     // .cpp file
     std::string parse_types_cpp_template =
         "#include <string>\n"
+        "#include <optional>"
+        "\n"
         "#include \"serialise.h\"\n"
         "#include \"scene_node.h\"\n"
         "#include \"utilities.h\"\n"
@@ -92,11 +94,10 @@ int main(int argv, char** args) {
         "struct pipeline;\n"
         "\n"
         "namespace serial {\n"
-        "    option<scene_node*, error> deserialise_type(arena& arena, node* n, std::string type) {\n"
+        "    std::optional<error> deserialise_type(arena& arena, scene_node* sc, scene_node* root, node* n, std::string type) {\n"
         "        if (type == \"empty\") {\n"
-        "            scene_node* sc = arena.allocate<scene_node>();\n"
         "            sc->component_type = scene_node_type::empty;\n"
-        "            return sc;\n"
+        "            return std::nullopt;\n"
         "        }\n\n"
 
         "        // Dynamic else-ifs\n"
@@ -108,7 +109,7 @@ int main(int argv, char** args) {
         "        return error { \"Type '\" + type + \"' not recognised when deserialising JSON to scene node.\" };\n"
         "    }\n"
         "\n"
-        "    void serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt) {\n"
+        "    void serialise_node(std::ostream& os, const scene_node* sc, int indt) {\n"
         "        if (sc->component_type == scene_node_type::empty) os << \"{ type: empty }\";\n\n"
         
         "        // Dynamic serialisation stuff; scene nodes don't know how to serialise their component\n"
@@ -127,16 +128,15 @@ int main(int argv, char** args) {
     std::string dynamic_else_ifs {};
     std::string dynamic_else_ifs_template =
         "        else if (type == \"{{type}}\") {\n"
-        "            option<{{type}}*, error> res = deserialise_ref<{{type}}>(arena, n);\n"
+        "            option<{{type}}*, error> res = deserialise_ref<{{type}}>(arena, root, n);\n"
         "            if (std::holds_alternative<error>(res)) return std::get<error>(res);\n"
-        "            scene_node* sc = arena.allocate<scene_node>();\n"
         "            {{type}}* obj = std::get<{{type}}*>(res);\n"
         "            sc->component_type = scene_node_type::{{type}};\n"
         "            sc->component = obj;\n"
         "            sc->cmp_load = [](scene_node* sc) { load(static_cast<{{type}}*>(sc->component)); };\n"
         "            sc->cmp_run = [](scene_node* sc) { run(static_cast<{{type}}*>(sc->component)); };\n"
         "            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<{{type}}*>(sc->component), p); };\n"
-        "            return sc;\n"
+        "            return std::nullopt;\n"
         "        }\n\n";
 
     std::string dynamic_serialisation {};

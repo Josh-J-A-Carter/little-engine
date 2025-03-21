@@ -30,7 +30,7 @@ namespace serial {
     }
 
     template <>
-    inline option<script*, error> deserialise_ref<script>(arena& arena, node* n) {
+    inline option<script*, error> deserialise_ref<script>(arena& arena, scene_node* root, node* n) {
         script* sc = arena.allocate<script>();
 
         DESERIALISE_VAL(sc, n, a)
