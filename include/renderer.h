@@ -1,6 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include <iostream>
+
 #include "arena.h"
 #include "scene_node.h"
 #include "transform.h"
@@ -13,11 +15,14 @@ struct renderer {
     transform m_transform {};
     mesh m_mesh {};
     std::string filename {};
+    scene_node* ref { nullptr };
 };
 
 template<>
 inline void load<renderer>(renderer* r) {
     r->m_mesh.load(r->filename);
+
+    std::cout << "at y = " << r->m_transform.pos.y << " : got ref to " << r->ref->name << std::endl;
 }
 
 template<>
@@ -41,6 +46,7 @@ namespace serial {
 
         REPORT(sr, m_transform)
         REPORT(sr, filename)
+        REPORT(sr, ref);
     }
 
     template <>
@@ -49,6 +55,7 @@ namespace serial {
 
         DESERIALISE_VAL(r, n, m_transform)
         DESERIALISE_VAL(r, n, filename)
+        DESERIALISE_REF(r, arena, root, n, ref);
 
         return r;
     }

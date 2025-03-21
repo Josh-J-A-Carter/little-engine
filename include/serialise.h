@@ -155,10 +155,10 @@ namespace serial {
     option<node*, error> res__attr_##field = get_node_attr(static_cast<object_node*>(n), #field); \
     if (std::holds_alternative<error>(res__attr_##field)) return std::get<error>(res__attr_##field); \
     node* n__##field = std::get<node*>(res__attr_##field); \
-    using t__##field = decltype(obj->field); \
-    option<t__##field, error> res__ds_##field = deserialise_ref<t__##field>(arena, root, n__##field); \
+    using t__##field = std::remove_reference_t<decltype(*(obj->field))>; \
+    option<t__##field*, error> res__ds_##field = deserialise_ref<t__##field>(arena, root, n__##field); \
     if (std::holds_alternative<error>(res__ds_##field)) return std::get<error>(res__ds_##field); \
-    obj->field = std::get<t__##field>(res__ds_##field);
+    obj->field = std::get<t__##field*>(res__ds_##field);
 
 #define DESERIALISE_VEC_REF(obj, arena, root, n, field) \
     option<node*, error> res__##field = get_node_attr(static_cast<object_node*>(n), #field); \
@@ -187,6 +187,7 @@ namespace serial {
     if (std::holds_alternative<error>(res__ds_##field)) return std::get<error>(res__ds_##field); \
     obj->field = std::get<t__##field>(res__ds_##field);
 
+#include "scene_node_deserialise.h"
 
 // 
 // 
