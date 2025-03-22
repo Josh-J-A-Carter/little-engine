@@ -262,7 +262,7 @@ void draw() {
         obj.mesh->render();
     }
 
-    g_app.render(g_pipeline);
+    g_app.render(&g_pipeline);
 
     gl_error_check_barrier
 

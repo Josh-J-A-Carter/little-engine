@@ -11,6 +11,7 @@
 #include "transform.h"
 
 struct pipeline;
+struct application;
 
 namespace serial {
     std::optional<error> deserialise_type(arena& arena, scene_node* sc, scene_node* root, node* n, std::string type) {
@@ -26,9 +27,12 @@ namespace serial {
             renderer* obj = std::get<renderer*>(res);
             sc->component_type = scene_node_type::renderer;
             sc->component = obj;
-            sc->cmp_load = [](scene_node* sc) { load(static_cast<renderer*>(sc->component)); };
-            sc->cmp_run = [](scene_node* sc) { run(static_cast<renderer*>(sc->component)); };
-            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<renderer*>(sc->component), p); };
+            sc->cmp_load = [](application* app, scene* scene, scene_node* this_node) {
+                    load(app, scene, this_node, static_cast<renderer*>(this_node->component)); };
+            sc->cmp_run = [](application* app, scene* scene, scene_node* this_node) {
+                    run(app, scene, this_node, static_cast<renderer*>(this_node->component)); };
+            sc->cmp_render = [](application* app, scene* scene, scene_node* this_node, pipeline* p) {
+                    render(app, scene, this_node, static_cast<renderer*>(this_node->component), p); };
             return std::nullopt;
         }
 
@@ -38,9 +42,12 @@ namespace serial {
             script* obj = std::get<script*>(res);
             sc->component_type = scene_node_type::script;
             sc->component = obj;
-            sc->cmp_load = [](scene_node* sc) { load(static_cast<script*>(sc->component)); };
-            sc->cmp_run = [](scene_node* sc) { run(static_cast<script*>(sc->component)); };
-            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<script*>(sc->component), p); };
+            sc->cmp_load = [](application* app, scene* scene, scene_node* this_node) {
+                    load(app, scene, this_node, static_cast<script*>(this_node->component)); };
+            sc->cmp_run = [](application* app, scene* scene, scene_node* this_node) {
+                    run(app, scene, this_node, static_cast<script*>(this_node->component)); };
+            sc->cmp_render = [](application* app, scene* scene, scene_node* this_node, pipeline* p) {
+                    render(app, scene, this_node, static_cast<script*>(this_node->component), p); };
             return std::nullopt;
         }
 
@@ -50,9 +57,12 @@ namespace serial {
             transform* obj = std::get<transform*>(res);
             sc->component_type = scene_node_type::transform;
             sc->component = obj;
-            sc->cmp_load = [](scene_node* sc) { load(static_cast<transform*>(sc->component)); };
-            sc->cmp_run = [](scene_node* sc) { run(static_cast<transform*>(sc->component)); };
-            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<transform*>(sc->component), p); };
+            sc->cmp_load = [](application* app, scene* scene, scene_node* this_node) {
+                    load(app, scene, this_node, static_cast<transform*>(this_node->component)); };
+            sc->cmp_run = [](application* app, scene* scene, scene_node* this_node) {
+                    run(app, scene, this_node, static_cast<transform*>(this_node->component)); };
+            sc->cmp_render = [](application* app, scene* scene, scene_node* this_node, pipeline* p) {
+                    render(app, scene, this_node, static_cast<transform*>(this_node->component), p); };
             return std::nullopt;
         }
 
@@ -61,7 +71,7 @@ namespace serial {
     }
 
     void serialise_node(std::ostream& os, const scene_node* sc, int indt) {
-        if (sc->component_type == scene_node_type::empty) os << "{ type: empty }";
+        if (sc->component_type == scene_node_type::empty) serialise_node_empty(os, sc, indt);
 
         // Dynamic serialisation stuff; scene nodes don't know how to serialise their component
         // as they don't know its type. Why didn't I just use polymorphism to be honest??? Too late!

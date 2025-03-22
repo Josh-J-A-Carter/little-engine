@@ -100,7 +100,11 @@ void application::update() {
     m_window_width = width;
     m_window_height = height;
 
-    m_scene->run();
+    m_scene->run(this);
+}
+
+scene* application::current_scene() {
+    return m_scene;
 }
 
 std::optional<error> application::load_scene(std::string filename) {
@@ -108,6 +112,7 @@ std::optional<error> application::load_scene(std::string filename) {
     if (std::holds_alternative<error>(res)) return std::get<error>(res);
 
     m_scene = std::get<scene*>(res);
+    m_scene->load(this);
     return std::nullopt;
 }
 
@@ -118,6 +123,6 @@ std::optional<error> application::save_scene(std::string filename) {
     return std::nullopt;
 }
 
-void application::render(pipeline& p) {
-    if (m_scene) m_scene->render(p);
+void application::render(pipeline* p) {
+    if (m_scene) m_scene->render(this, p);
 }

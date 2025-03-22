@@ -13,7 +13,6 @@ namespace serial {
     void serialise(std::ostream& os, const renderer& obj, const scene_node* sc, int indt);
     void serialise(std::ostream& os, const script& obj, const scene_node* sc, int indt);
     void serialise(std::ostream& os, const transform& obj, const scene_node* sc, int indt);
-
 }
 
 #endif

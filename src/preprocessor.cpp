@@ -92,6 +92,7 @@ int main(int argv, char** args) {
         "{{dynamic-includes}}\n"
 
         "struct pipeline;\n"
+        "struct application;\n"
         "\n"
         "namespace serial {\n"
         "    std::optional<error> deserialise_type(arena& arena, scene_node* sc, scene_node* root, node* n, std::string type) {\n"
@@ -110,7 +111,7 @@ int main(int argv, char** args) {
         "    }\n"
         "\n"
         "    void serialise_node(std::ostream& os, const scene_node* sc, int indt) {\n"
-        "        if (sc->component_type == scene_node_type::empty) os << \"{ type: empty }\";\n\n"
+        "        if (sc->component_type == scene_node_type::empty) serialise_node_empty(os, sc, indt);\n\n"
         
         "        // Dynamic serialisation stuff; scene nodes don't know how to serialise their component\n"
         "        // as they don't know its type. Why didn't I just use polymorphism to be honest??? Too late!\n"
@@ -133,9 +134,12 @@ int main(int argv, char** args) {
         "            {{type}}* obj = std::get<{{type}}*>(res);\n"
         "            sc->component_type = scene_node_type::{{type}};\n"
         "            sc->component = obj;\n"
-        "            sc->cmp_load = [](scene_node* sc) { load(static_cast<{{type}}*>(sc->component)); };\n"
-        "            sc->cmp_run = [](scene_node* sc) { run(static_cast<{{type}}*>(sc->component)); };\n"
-        "            sc->cmp_render = [](scene_node* sc, pipeline& p) { render(static_cast<{{type}}*>(sc->component), p); };\n"
+        "            sc->cmp_load = [](application* app, scene* scene, scene_node* this_node) {\n"
+        "                    load(app, scene, this_node, static_cast<{{type}}*>(this_node->component)); };\n"
+        "            sc->cmp_run = [](application* app, scene* scene, scene_node* this_node) {\n"
+        "                    run(app, scene, this_node, static_cast<{{type}}*>(this_node->component)); };\n"
+        "            sc->cmp_render = [](application* app, scene* scene, scene_node* this_node, pipeline* p) {\n"
+        "                    render(app, scene, this_node, static_cast<{{type}}*>(this_node->component), p); };\n"
         "            return std::nullopt;\n"
         "        }\n\n";
 
@@ -210,7 +214,7 @@ int main(int argv, char** args) {
         "\n"
         "namespace serial {\n"
 
-            "{{function-declarations}}\n"
+            "{{function-declarations}}"
 
         "}\n"
         "\n"

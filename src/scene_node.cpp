@@ -4,35 +4,67 @@
 #include "serialise.h"
 
 struct pipeline;
+struct application;
+struct scene;
 
-void scene_node::load() {
-    cmp_load(this);
+void scene_node::load(application* app, scene* scene) {
+    cmp_load(app, scene, this);
 
     for (scene_node* child : children) {
-        child->load();
+        child->load(app, scene);
     }
 }
 
-void scene_node::run() {
-    cmp_run(this);
+void scene_node::run(application* app, scene* scene) {
+    cmp_run(app, scene, this);
 
     for (scene_node* child : children) {
-        child->run();
+        child->run(app, scene);
     }
 }
 
-void scene_node::render(pipeline& p) {
-    cmp_render(this, p);
+void scene_node::render(application* app, scene* scene, pipeline* p) {
+    cmp_render(app, scene, this, p);
 
     for (scene_node* child : children) {
-        child->render(p);
+        child->render(app, scene, p);
     }
 }
 
 /// @brief Serialisation function that is called when the scene_node appears as a reference in a field
-/// of another type, as opposed to scene node references in the scene's node hierarchy
+/// of another type, as opposed to scene node references in the scene's node hierarchy.
 void serial::serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt) {
     // References can be either valid or invalid. If valid, this is just the node's ID.
     if (sc->is_valid) os << sc->id;
     else os << "invalid";
+}
+
+/// @brief Serialise a list of scene nodes, as the children of another scene_node.
+void serial::serialise_node_list(std::ostream& os, const std::vector<scene_node*> list, int indt) {
+    if (list.empty()) {
+        os << "[]";
+        return;
+    }
+    
+    os << "[\n";
+
+    int i_inner = indt + 1;
+    for (int i = 0 ; i < list.size() ; i += 1) {
+        os << indent(i_inner);
+        serialise_node(os, list[i], i_inner);
+        os << (i < list.size() - 1 ? ",\n" : "\n");
+    }
+
+    os << indent(indt) << "]";   
+}
+
+/// @brief Serialise a scene node of the empty variant
+void serial::serialise_node_empty(std::ostream& os, const scene_node* sc, int indt) {
+    os << "{\n";
+    os << indent(indt + 1) << "type: empty,\n";
+    os << indent(indt + 1) << "id: " << sc->id << ",\n";
+    os << indent(indt + 1) << "name: " << sc->name << ",\n";
+    os << indent(indt + 1) << "children: ";
+    serialise_node_list(os, sc->children, indt + 2);
+    os << "\n" << indent(indt) << "}";
 }

@@ -6,16 +6,18 @@
 
 #include "parse_types.h"
 
+struct application;
 struct pipeline;
+struct scene;
 
 struct scene_node {
     std::string name { "Object" };
     scene_node_type component_type { scene_node_type::empty };
     void* component { nullptr };
 
-    void (*cmp_load)(scene_node*) { [](scene_node*) {} };
-    void (*cmp_run)(scene_node*) { [](scene_node*) {} };
-    void (*cmp_render)(scene_node*, pipeline&) { [](scene_node*, pipeline&) {} };
+    void (*cmp_load)(application*, scene*, scene_node*) { [](application*, scene*, scene_node*) {} };
+    void (*cmp_run)(application*, scene*, scene_node*) { [](application*, scene*, scene_node*) {} };
+    void (*cmp_render)(application*, scene*, scene_node*, pipeline*) { [](application*, scene*, scene_node*, pipeline*) {} };
     
     scene_node* parent { nullptr };
     std::vector<scene_node*> children {};
@@ -23,18 +25,18 @@ struct scene_node {
     bool is_valid { true };
     int id { -1 };
 
-    void load();
-    void run();
-    void render(pipeline& p);
+    void load(application*, scene*);
+    void run(application*, scene*);
+    void render(application*, scene*, pipeline* p);
 };
 
 template<typename T>
-void render(T*, pipeline&) {}
+void render(application*, scene*, scene_node*, T*, pipeline*) {}
 
 template<typename T>
-void load(T*) {}
+void load(application*, scene*, scene_node*, T*) {}
 
 template<typename T>
-void run(T*) {}
+void run(application*, scene*, scene_node*, T*) {}
 
 #endif

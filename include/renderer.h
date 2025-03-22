@@ -15,24 +15,24 @@ struct renderer {
     transform m_transform {};
     mesh m_mesh {};
     std::string filename {};
-    scene_node* ref { nullptr };
 };
 
-template<>
-inline void load<renderer>(renderer* r) {
-    r->m_mesh.load(r->filename);
+struct application;
+struct scene;
 
-    std::cout << "at y = " << r->m_transform.pos.y << " : got ref to " << r->ref->name << std::endl;
+template<>
+inline void load<renderer>(application* app, scene* scene, scene_node* this_node, renderer* r) {
+    r->m_mesh.load(r->filename);
 }
 
 template<>
-inline void render<renderer>(renderer* r, pipeline& p) {
+inline void render<renderer>(application* app, scene* scene, scene_node* this_node, renderer* r, pipeline* p) {
     // Model matrix
     glm::mat4 model_mat { r->m_transform.get_model_matrix() };
-    p.set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
+    p->set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
 
     // Ambient material
-    p.set_uniform(pipeline::UNIFORM_MATERIAL, r->m_mesh.get_material());
+    p->set_uniform(pipeline::UNIFORM_MATERIAL, r->m_mesh.get_material());
 
     // Draw call
     r->m_mesh.render();
@@ -46,7 +46,6 @@ namespace serial {
 
         REPORT(sr, m_transform)
         REPORT(sr, filename)
-        REPORT(sr, ref);
     }
 
     template <>
@@ -55,7 +54,6 @@ namespace serial {
 
         DESERIALISE_VAL(r, n, m_transform)
         DESERIALISE_VAL(r, n, filename)
-        DESERIALISE_REF(r, arena, root, n, ref);
 
         return r;
     }

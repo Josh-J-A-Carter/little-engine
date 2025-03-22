@@ -411,7 +411,6 @@ namespace serial {
         
         // Parse the tree structure into an actual scene
         option<scene*, error> node_parse_result = parse_node_tree_to_scene(std::get<node*>(json_parse_result));
-        if (std::holds_alternative<scene*>(node_parse_result)) std::get<scene*>(node_parse_result)->load();
 
         delete parse_arena;
         return node_parse_result;

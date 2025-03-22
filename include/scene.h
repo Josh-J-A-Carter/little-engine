@@ -8,21 +8,22 @@
 #define SCENE_ARENA_SIZE 1024 * 1024
 
 struct pipeline;
+struct application;
 
 struct scene {
     arena arena { SCENE_ARENA_SIZE };
     scene_node* root { nullptr };
 
-    inline void load() {
-        root->load();
+    inline void load(application* app) {
+        root->load(app, this);
     }
 
-    inline void run() {
-        root->run();
+    inline void run(application* app) {
+        root->run(app, this);
     }
 
-    inline void render(pipeline& p) {
-        root->render(p);
+    inline void render(application* app, pipeline* p) {
+        root->render(app, this, p);
     }
 };
 

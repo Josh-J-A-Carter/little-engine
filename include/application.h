@@ -9,6 +9,7 @@
 
 #include "pipeline.h"
 #include "scene.h"
+#include "scene_node.h"
 #include "utilities.h"
 
 #define DEFAULT_WIDTH 1920
@@ -49,11 +50,13 @@ struct application {
 
         void update();
 
-        void render(pipeline& p);
+        void render(pipeline* p);
 
         std::optional<error> load_scene(std::string);
 
         std::optional<error> save_scene(std::string);
+
+        scene* current_scene();
 };
 
 #endif

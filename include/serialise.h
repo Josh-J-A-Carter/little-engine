@@ -217,6 +217,10 @@ namespace serial {
 
     void serialise_node(std::ostream& os, const scene_node* sc, int indt);
 
+    void serialise_node_list(std::ostream& os, const std::vector<scene_node*> list, int indt);
+
+    void serialise_node_empty(std::ostream& os, const scene_node* sc, int indt);
+
     void serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt);
 
     inline void serialise(std::ostream& os, float s, const scene_node* _, int indt) {
@@ -281,22 +285,8 @@ namespace serial {
             ~serialiser() {
                 // If this is coming from a scene-node, include child scene_nodes as an attribute
                 if (sc) {
-                    if (sc->children.empty()) {
-                        os << ",\n" << indent(indt + 1) << "children: []";
-                    }
-
-                    else {
-                        os << ",\n" << indent(indt + 1) << "children: [\n";
-    
-                        int i_inner = indt + 2;
-                        for (int i = 0 ; i < sc->children.size() ; i += 1) {
-                            os << indent(i_inner);
-                            serialise_node(os, sc->children[i], i_inner);
-                            os << (i < sc->children.size() - 1 ? ",\n" : "\n");
-                        }
-                
-                        os << indent(indt + 1) << "]";
-                    }
+                    os << ",\n" << indent(indt + 1) << "children: ";
+                    serialise_node_list(os, sc->children, indt + 2);
                 }
 
                 os << "\n" << indent(indt) << "}";
