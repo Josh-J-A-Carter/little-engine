@@ -73,7 +73,6 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
     if (!escaped && !app->unfocused) {
         SDL_WarpMouseInWindow(app->window(), app->width() / 2, app->height() / 2);
         SDL_SetRelativeMouseMode(SDL_TRUE);
-        // std::cout << "capture" << std::endl;
     } else {
         SDL_SetRelativeMouseMode(SDL_FALSE);
     }
@@ -89,17 +88,16 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
         if (escaped || app->unfocused) continue;
 
         if (event.type == SDL_MOUSEMOTION) {
-            cam->rotate({ event.motion.xrel * dt / app->desired_fps, event.motion.yrel * dt / app->desired_fps });
-            // std::cout << "rot" << std::endl;
+            cam->rotate({ -event.motion.xrel * dt / app->desired_fps, -event.motion.yrel * dt / app->desired_fps });
         }
     }
 
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     if (!escaped && !app->unfocused) {
-        float speed { 0.01f * dt / app->desired_fps };
+        float speed { -0.01f * dt / app->desired_fps };
 
-        if (state[SDL_SCANCODE_LCTRL]) speed *= 2;
+        if (state[SDL_SCANCODE_LCTRL]) speed *= 3;
 
         if (state[SDL_SCANCODE_W]) cam->translate(cam->forward() * speed);
         else if (state[SDL_SCANCODE_S]) cam->translate(cam->forward() * -speed);
@@ -109,7 +107,6 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
 
         if (state[SDL_SCANCODE_SPACE]) cam->translate(cam->up() * speed);
         else if (state[SDL_SCANCODE_LSHIFT]) cam->translate(cam->up() * -speed);
-        // std::cout << "move" << std::endl;
     }
 
 #ifndef __EMSCRIPTEN__
