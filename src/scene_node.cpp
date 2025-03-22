@@ -36,12 +36,12 @@ void scene_node::render(application* app, scene* scene, pipeline* p) {
     }
 }
 
-void scene_node::get_directional_lights(std::vector<directional_light*> lights) {
+void scene_node::get_directional_lights(std::vector<directional_light*>& lights) {
     if (component_type == scene_node_type::directional_light) lights.push_back(static_cast<directional_light*>(component));
     for (scene_node* child : children) child->get_directional_lights(lights);
 }
 
-void scene_node::get_point_lights(std::vector<point_light*> lights) {
+void scene_node::get_point_lights(std::vector<point_light*>& lights) {
     if (component_type == scene_node_type::point_light) lights.push_back(static_cast<point_light*>(component));
     for (scene_node* child : children) child->get_point_lights(lights);
 }

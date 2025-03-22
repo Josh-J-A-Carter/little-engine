@@ -173,6 +173,8 @@ void application::render(pipeline* p) {
     
 
     // Set light uniforms
+    // std::vector<directional_light*> lights = m_scene->get_directional_lights();
+    // std::cout << "dir lights: " << lights.size() << std::endl;
     p->set_uniform(pipeline::UNIFORM_DIR_LIGHTS, m_scene->get_directional_lights());
     p->set_uniform(pipeline::UNIFORM_POINT_LIGHTS, m_scene->get_point_lights());
     

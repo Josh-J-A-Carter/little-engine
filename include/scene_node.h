@@ -34,8 +34,8 @@ struct scene_node {
     void run(application*, scene*);
     void render(application*, scene*, pipeline* p);
 
-    void get_directional_lights(std::vector<directional_light*> lights);
-    void get_point_lights(std::vector<point_light*> lights);
+    void get_directional_lights(std::vector<directional_light*>& lights);
+    void get_point_lights(std::vector<point_light*>& lights);
     std::optional<camera*> get_camera();
 };
 
