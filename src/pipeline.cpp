@@ -106,7 +106,7 @@ void pipeline::set_uniform(uniform u, float input) {
     glUniform1f(get_uniform_location(u), input);
 }
 
-void pipeline::set_uniform(uniform u, std::vector<directional_light> lights) {
+void pipeline::set_uniform(uniform u, std::vector<directional_light*> lights) {
     if (u != UNIFORM_DIR_LIGHTS) return;
 
     // How many directional lights in the vector?
@@ -118,21 +118,21 @@ void pipeline::set_uniform(uniform u, std::vector<directional_light> lights) {
 
         // Base light fields
         snprintf(name, sizeof(name), "u_dir_lights[%d].base.color", i);
-        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].base.color[0]);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i]->base.color[0]);
         snprintf(name, sizeof(name), "u_dir_lights[%d].base.ambient_intensity", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.ambient_intensity);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->base.ambient_intensity);
         snprintf(name, sizeof(name), "u_dir_lights[%d].base.diffuse_intensity", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.diffuse_intensity);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->base.diffuse_intensity);
         snprintf(name, sizeof(name), "u_dir_lights[%d].base.specular_intensity", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.specular_intensity);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->base.specular_intensity);
 
         // Directional light fields
         snprintf(name, sizeof(name), "u_dir_lights[%d].direction", i);
-        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].direction[0]);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i]->direction[0]);
     }
 }
 
-void pipeline::set_uniform(uniform u, std::vector<point_light> lights) {
+void pipeline::set_uniform(uniform u, std::vector<point_light*> lights) {
     if (u != UNIFORM_POINT_LIGHTS) return;
 
     // How many points lights in the vector?
@@ -144,23 +144,23 @@ void pipeline::set_uniform(uniform u, std::vector<point_light> lights) {
 
         // Base light fields
         snprintf(name, sizeof(name), "u_point_lights[%d].base.color", i);
-        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].base.color[0]);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i]->base.color[0]);
         snprintf(name, sizeof(name), "u_point_lights[%d].base.ambient_intensity", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.ambient_intensity);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->base.ambient_intensity);
         snprintf(name, sizeof(name), "u_point_lights[%d].base.diffuse_intensity", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.diffuse_intensity);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->base.diffuse_intensity);
         snprintf(name, sizeof(name), "u_point_lights[%d].base.specular_intensity", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].base.specular_intensity);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->base.specular_intensity);
 
         // Point light fields
         snprintf(name, sizeof(name), "u_point_lights[%d].world_pos", i);
-        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i].transform.pos[0]);
+        glUniform3fv(glGetUniformLocation(m_program, name), 1, &lights[i]->transform.pos[0]);
         snprintf(name, sizeof(name), "u_point_lights[%d].attn_const", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].attn_const);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->attn_const);
         snprintf(name, sizeof(name), "u_point_lights[%d].attn_linear", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].attn_linear);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->attn_linear);
         snprintf(name, sizeof(name), "u_point_lights[%d].attn_exp", i);
-        glUniform1f(glGetUniformLocation(m_program, name), lights[i].attn_exp);
+        glUniform1f(glGetUniformLocation(m_program, name), lights[i]->attn_exp);
     }
 }
 

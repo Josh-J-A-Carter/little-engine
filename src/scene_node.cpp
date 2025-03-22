@@ -1,7 +1,12 @@
 #include <ostream>
+#include <optional>
+#include <Vector>
 
 #include "scene_node.h"
 #include "serialise.h"
+
+#include "directional_light.h"
+#include "point_light.h"
 
 struct pipeline;
 struct application;
@@ -29,6 +34,25 @@ void scene_node::render(application* app, scene* scene, pipeline* p) {
     for (scene_node* child : children) {
         child->render(app, scene, p);
     }
+}
+
+void scene_node::get_directional_lights(std::vector<directional_light*> lights) {
+    if (component_type == scene_node_type::directional_light) lights.push_back(static_cast<directional_light*>(component));
+    for (scene_node* child : children) child->get_directional_lights(lights);
+}
+
+void scene_node::get_point_lights(std::vector<point_light*> lights) {
+    if (component_type == scene_node_type::point_light) lights.push_back(static_cast<point_light*>(component));
+    for (scene_node* child : children) child->get_point_lights(lights);
+}
+
+std::optional<camera*> scene_node::get_camera() {
+    if (component_type == scene_node_type::camera) return static_cast<camera*>(component);
+    for (scene_node* child : children) {
+        std::optional<camera*> c = child->get_camera();
+        if (c.has_value()) return c.value();
+    }
+    return std::nullopt;
 }
 
 /// @brief Serialisation function that is called when the scene_node appears as a reference in a field

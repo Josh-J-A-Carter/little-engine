@@ -3,12 +3,17 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include "parse_types.h"
 
 struct application;
 struct pipeline;
 struct scene;
+
+struct directional_light;
+struct point_light;
+struct camera;
 
 struct scene_node {
     std::string name { "Object" };
@@ -28,6 +33,10 @@ struct scene_node {
     void load(application*, scene*);
     void run(application*, scene*);
     void render(application*, scene*, pipeline* p);
+
+    void get_directional_lights(std::vector<directional_light*> lights);
+    void get_point_lights(std::vector<point_light*> lights);
+    std::optional<camera*> get_camera();
 };
 
 template<typename T>

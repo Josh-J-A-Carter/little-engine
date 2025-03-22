@@ -41,8 +41,8 @@ struct pipeline {
         void set_uniform(uniform u, glm::mat4& matrix);
         void set_uniform(uniform u, int input);
         void set_uniform(uniform u, float input);
-        void set_uniform(uniform u, std::vector<directional_light> lights);
-        void set_uniform(uniform u, std::vector<point_light> lights);
+        void set_uniform(uniform u, std::vector<directional_light*> lights);
+        void set_uniform(uniform u, std::vector<point_light*> lights);
         void set_uniform(uniform u, material& material);
         void set_uniform(uniform u, glm::vec3 vector);
 

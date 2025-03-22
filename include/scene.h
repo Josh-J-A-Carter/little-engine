@@ -1,6 +1,9 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <vector>
+#include <optional>
+
 #include "arena.h"
 #include "serialise.h"
 #include "scene_node.h"
@@ -9,6 +12,10 @@
 
 struct pipeline;
 struct application;
+
+struct directional_light;
+struct point_light;
+struct camera;
 
 struct scene {
     arena arena { SCENE_ARENA_SIZE };
@@ -24,6 +31,22 @@ struct scene {
 
     inline void render(application* app, pipeline* p) {
         root->render(app, this, p);
+    }
+
+    inline std::vector<directional_light*> get_directional_lights() {
+        std::vector<directional_light*> lights {};
+        root->get_directional_lights(lights);
+        return lights;
+    }
+
+    inline std::vector<point_light*> get_point_lights() {
+        std::vector<point_light*> lights {};
+        root->get_point_lights(lights);
+        return lights;
+    }
+
+    inline std::optional<camera*> get_camera() {
+        return root->get_camera();
     }
 };
 

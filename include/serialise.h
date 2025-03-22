@@ -180,12 +180,13 @@ namespace serial {
 
 #define DESERIALISE_VAL(obj, n, field) \
     option<node*, error> res__##field = get_node_attr(static_cast<object_node*>(n), #field); \
-    if (std::holds_alternative<error>(res__##field)) return std::get<error>(res__##field); \
-    node* n__##field = std::get<node*>(res__##field); \
-    using t__##field = decltype(obj->field); \
-    option<t__##field, error> res__ds_##field = deserialise_val<t__##field>(arena, n__##field); \
-    if (std::holds_alternative<error>(res__ds_##field)) return std::get<error>(res__ds_##field); \
-    obj->field = std::get<t__##field>(res__ds_##field);
+    if (std::holds_alternative<node*>(res__##field)) { \
+        node* n__##field = std::get<node*>(res__##field); \
+        using t__##field = decltype(obj->field); \
+        option<t__##field, error> res__ds_##field = deserialise_val<t__##field>(arena, n__##field); \
+        if (std::holds_alternative<error>(res__ds_##field)) return std::get<error>(res__ds_##field); \
+        obj->field = std::get<t__##field>(res__ds_##field); \
+    }
 
 #include "scene_node_deserialise.h"
 

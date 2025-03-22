@@ -6,6 +6,7 @@
 #include "application.h"
 #include "pipeline.h"
 #include "scene.h"
+#include "camera.h"
 #include "serialise.h"
 
 void application::create() {
@@ -69,7 +70,7 @@ void application::destroy() {
     SDL_Quit();
 }
 
-float application::program_time() {
+float application::calc_program_time() {
     std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> program_time = now - m_program_time_start;
     return program_time.count();
@@ -100,7 +101,7 @@ void application::update() {
     m_window_width = width;
     m_window_height = height;
 
-    m_scene->run(this);
+    if (m_scene) m_scene->run(this);
 }
 
 scene* application::current_scene() {
@@ -117,6 +118,8 @@ std::optional<error> application::load_scene(std::string filename) {
 }
 
 std::optional<error> application::save_scene(std::string filename) {
+    if (m_scene == nullptr) return { error { "Attempted to saved scene, but no scene is active." } };
+
     std::ofstream out { filename };
     serial::serialise_scene(out, m_scene);
 
@@ -124,5 +127,56 @@ std::optional<error> application::save_scene(std::string filename) {
 }
 
 void application::render(pipeline* p) {
+
+    static bool active_scene = true;
+    if (m_scene == nullptr) {
+        if (active_scene) std::cout << "Warning: no scene is active." << std::endl;
+        active_scene = false;
+        return;
+    } else active_scene = true;
+
+    m_last_frame = m_time;
+    m_time = calc_program_time();
+    m_delta_time = m_last_frame - m_time;
+
+
+    p->set_uniform(pipeline::UNIFORM_SAMPLER_DIFFUSE, DIFFUSE_TEX_UNIT_INDEX);
+    p->set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, SPECULAR_TEX_UNIT_INDEX);
+
+
+    // Get a reference to the current camera
+    std::optional<camera*> res = m_scene->get_camera();
+
+    static bool no_camera = false;
+    if (res.has_value() == false) {
+#ifndef NDEBUG
+        if (!no_camera) std::cerr << "Warning: no camera in the scene is rendering" << std::endl;
+        no_camera = true;
+#endif
+        return;
+    } else no_camera = false;
+
+    camera* cam = res.value();
+
+    // Perspective & View matrices
+    glm::mat4 view_mat { cam->get_view_matrix() };
+    glm::mat4 proj_mat { cam->get_perspective_matrix() };
+
+    p->set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
+    p->set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
+
+    // Camera position
+    p->set_uniform(pipeline::UNIFORM_CAMERA, cam->position());
+
+    // Miscellaneous
+    p->set_uniform(pipeline::UNIFORM_TIME, time());
+    
+
+    // Set light uniforms
+    p->set_uniform(pipeline::UNIFORM_DIR_LIGHTS, m_scene->get_directional_lights());
+    p->set_uniform(pipeline::UNIFORM_POINT_LIGHTS, m_scene->get_point_lights());
+    
+
+    // Tell scene elements to recursively render themselves
     if (m_scene) m_scene->render(this, p);
 }
