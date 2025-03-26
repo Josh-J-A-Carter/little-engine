@@ -70,9 +70,11 @@ GLint pipeline::get_uniform_location(uniform u) {
     if (u == UNIFORM_MODEL_MAT) loc = glGetUniformLocation(m_program, "u_model_matrix");
     else if (u == UNIFORM_VIEW_MAT) loc = glGetUniformLocation(m_program, "u_view_matrix");
     else if (u == UNIFORM_PROJ_MAT) loc = glGetUniformLocation(m_program, "u_proj_matrix");
+    else if (u == UNIFORM_SHADOW0_MAT) loc = glGetUniformLocation(m_program, "u_shadow_matrix");
 
     else if (u == UNIFORM_SAMPLER_DIFFUSE) loc = glGetUniformLocation(m_program, "u_sampler_diffuse");
     else if (u == UNIFORM_SAMPLER_SPECULAR) loc = glGetUniformLocation(m_program, "u_sampler_specular");
+    else if (u == UNIFORM_SAMPLER_SHADOW0) loc = glGetUniformLocation(m_program, "u_sampler_shadow0");
 
     else if (u == UNIFORM_MATERIAL__AMBIENT_COLOR) loc = glGetUniformLocation(m_program, "u_material.ambient_color");
     else if (u == UNIFORM_MATERIAL__DIFFUSE_COLOR) loc = glGetUniformLocation(m_program, "u_material.diffuse_color");

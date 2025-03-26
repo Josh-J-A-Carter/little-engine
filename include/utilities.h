@@ -7,10 +7,18 @@
 #include <cctype>
 #include <locale>
 
-#define DIFFUSE_TEX_UNIT GL_TEXTURE0
-#define DIFFUSE_TEX_UNIT_INDEX 0
-#define SPECULAR_TEX_UNIT GL_TEXTURE1
+#include <glad/glad.h>
+
+#define DIFFUSE_TEX_UNIT        GL_TEXTURE0
+#define DIFFUSE_TEX_UNIT_INDEX  0
+#define SPECULAR_TEX_UNIT       GL_TEXTURE1
 #define SPECULAR_TEX_UNIT_INDEX 1
+#define SHADOW_TEX_UNIT0        GL_TEXTURE2
+#define SHADOW_TEX_UNIT0_INDEX  2
+#define SHADOW_TEX_UNIT1        GL_TEXTURE3
+#define SHADOW_TEX_UNIT1_INDEX  3
+
+const int i = GL_TEXTURE0;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 

@@ -11,6 +11,11 @@
 #include "scene.h"
 #include "scene_node.h"
 #include "utilities.h"
+#include "directional_shadow_map.h"
+
+struct camera;
+struct directional_light;
+struct point_light;
 
 #define DEFAULT_WIDTH 1920
 #define DEFAULT_HEIGHT 1080
@@ -25,6 +30,11 @@ struct application {
  
         SDL_Window* m_window {};
         SDL_GLContext m_openGL_context {};
+
+        pipeline m_lightpipeline {};
+        pipeline m_shadowpipeline {};
+        directional_shadow_map m_shadowmap {};
+
         scene* m_scene { nullptr };
 
         bool m_quitting = false;
@@ -32,12 +42,15 @@ struct application {
         float m_time { calc_program_time() };
         float m_delta_time { 0 };
 
-        
         std::chrono::high_resolution_clock::time_point m_program_time_start;
         
         void destroy();
         
         float calc_program_time();
+
+        void render_lighting(camera*, std::vector<directional_light*>&, std::vector<point_light*>&);
+
+        void render_shadows(camera*, std::vector<directional_light*>&, std::vector<point_light*>&);
         
     public:
         const float desired_fps = 1 / 60.0f;
@@ -69,7 +82,7 @@ struct application {
 
         void update();
 
-        void render(pipeline* p);
+        void render();
 
         std::optional<error> load_scene(std::string);
 

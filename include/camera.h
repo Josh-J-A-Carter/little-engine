@@ -120,7 +120,7 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
     }
 #else
     if (state[SDL_SCANCODE_ESCAPE]) {
-        unfocused = true;
+        app->unfocused = true;
     }
 #endif
 }

@@ -71,6 +71,12 @@ namespace serial {
     option<T, error> deserialise_val(arena& arena, node* n);
 
     template<>
+    inline option<bool, error> deserialise_val<bool>(arena& arena, node* n) {
+        primitive_node* p { static_cast<primitive_node*>(n) };
+        return p->entry == "true" ? true : false;
+    }
+
+    template<>
     inline option<int, error> deserialise_val<int>(arena& arena, node* n) {
         primitive_node* p { static_cast<primitive_node*>(n) };
         return std::stoi(p->entry);
@@ -208,7 +214,7 @@ namespace serial {
 namespace serial {
 
     inline std::string indent(int n) {
-        return std::string(2 * n, ' ');
+        return std::string(4 * n, ' ');
     }
 
     template<typename T>
@@ -223,6 +229,10 @@ namespace serial {
     void serialise_node_empty(std::ostream& os, const scene_node* sc, int indt);
 
     void serialise(std::ostream& os, const scene_node* sc, const scene_node* _, int indt);
+
+    inline void serialise(std::ostream& os, bool s, const scene_node* _, int indt) {
+        os << (s ? "true" : "false");
+    }
 
     inline void serialise(std::ostream& os, float s, const scene_node* _, int indt) {
         os << s;

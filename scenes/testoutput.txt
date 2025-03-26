@@ -1,0 +1,93 @@
+{
+  type: empty,
+  id: 0,
+  name: root,
+  children: [
+      {
+        type: renderer,
+        id: 1,
+        name: cube,
+        m_transform: {
+            type: transform,
+            pos: [0, 0, 0],
+            rot: [0, 0, 0]
+          },
+        filename: ./assets/cube.obj,
+        children: []
+      },
+      {
+        type: renderer,
+        id: 2,
+        name: sphere,
+        m_transform: {
+            type: transform,
+            pos: [0, 0.5, 0],
+            rot: [0, 0, 0]
+          },
+        filename: ./assets/sphere.obj,
+        children: []
+      },
+      {
+        type: renderer,
+        id: 3,
+        name: Floor,
+        m_transform: {
+            type: transform,
+            pos: [0, -0.1, 0],
+            rot: [0, 0, 0]
+          },
+        filename: ./assets/floor.obj,
+        children: []
+      },
+      {
+        type: camera,
+        id: 4,
+        name: cammy,
+        m_pos: [0, 0, 0],
+        m_forward: [0, 0, -1],
+        m_up: [0, 1, 0],
+        m_facing: [0, 0, -1],
+        m_near: 0.1,
+        m_far: 100,
+        m_fov: 65,
+        m_aspect: 1,
+        m_sensitivity: 0.1,
+        children: []
+      },
+      {
+        type: directional_light,
+        id: 5,
+        name: dirlit,
+        direction: [0, 0, -1],
+        base: {
+            type: light,
+            color: [1, 1, 1],
+            ambient_intensity: 0.3,
+            diffuse_intensity: 1,
+            specular_intensity: 1
+          },
+        children: []
+      },
+      {
+        type: point_light,
+        id: 6,
+        name: ptlit,
+        transform: {
+            type: transform,
+            pos: [-0.5, 0.5, 0],
+            rot: [0, 0, 0]
+          },
+        base: {
+            type: light,
+            color: [1, 0.5, 1],
+            ambient_intensity: 0.4,
+            diffuse_intensity: 2,
+            specular_intensity: 1
+          },
+        attn_const: 1,
+        attn_linear: 1,
+        attn_exp: 0,
+        children: []
+      }
+    ]
+}

@@ -35,6 +35,7 @@ struct material {
 in vec3 v_world_pos;
 in vec2 v_texcoord0;
 in vec3 v_normal;
+in vec4 v_lightspace_pos;
 
 // Lighting data
 uniform int u_num_dir_lights;
@@ -46,13 +47,15 @@ uniform point_light u_point_lights[MAX_POINT_LIGHTS];
 uniform material u_material;
 uniform sampler2D u_sampler_diffuse;
 uniform sampler2D u_sampler_specular;
+uniform sampler2D u_sampler_shadow0;
+
 uniform vec3 u_camera_pos;
 
 // Output
 out vec4 out_color;
 
 
-vec4 calc_base_light(light base, vec3 direction) {
+vec4 calc_base_light(light base, vec3 direction, float shadow_factor) {
     vec4 ambient_color = vec4(base.color, 1.0f) * vec4(u_material.ambient_color, 1.0f) * base.ambient_intensity;
 
     float diffuse = clamp(dot(normalize(v_normal), -normalize(direction)), 0.0f, 1.0f);
@@ -67,12 +70,12 @@ vec4 calc_base_light(light base, vec3 direction) {
     
     vec4 specular_color = vec4(base.color, 1.0f) * vec4(u_material.specular_color, 1.0f) * base.specular_intensity * specular;
 
-    return ambient_color + diffuse_color + specular_color;
+    return ambient_color + (diffuse_color + specular_color) * shadow_factor;
 }
 
 vec4 calc_point_light(point_light light) {
     vec3 dir = v_world_pos - light.world_pos;
-    vec4 unscaled_emission = calc_base_light(light.base, dir);
+    vec4 unscaled_emission = calc_base_light(light.base, dir, 1.0f);
 
     float d = length(dir) * 10.0f;
     float scale_factor = light.attn_const + light.attn_linear * d + light.attn_exp * d * d;
@@ -81,8 +84,20 @@ vec4 calc_point_light(point_light light) {
     return scaled_emission;
 }
 
+float calc_dir_light_shadow() {
+    vec2 uv_shadow = vec2(0.5f * v_lightspace_pos.x + 0.5f, 0.5f * v_lightspace_pos.y + 0.5f);
+    float z = 0.5f * v_lightspace_pos.z + 0.5f;
+    float depth = texture(u_sampler_shadow0, uv_shadow).x;
+    // return depth;
+
+    float bias = 0.005f;
+
+    if (z + bias < depth) return 0.5f;
+    return 1.0f;
+}
+
 vec4 calc_dir_light(dir_light light) {
-    return calc_base_light(light.base, light.direction);
+    return calc_base_light(light.base, light.direction, calc_dir_light_shadow());
 }
 
 void main() {
@@ -96,5 +111,7 @@ void main() {
         total_light += calc_point_light(u_point_lights[i]);
     }
 
+    // float f = calc_dir_light_shadow();
+    // out_color = vec4(f, f, f, 1.0f); 
     out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
 }

@@ -1,6 +1,6 @@
 #include <ostream>
 #include <optional>
-#include <Vector>
+#include <vector>
 
 #include "scene_node.h"
 #include "serialise.h"
