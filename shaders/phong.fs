@@ -88,7 +88,7 @@ float calc_dir_light_shadow() {
     vec2 uv_shadow = vec2(0.5f * v_lightspace_pos.x + 0.5f, 0.5f * v_lightspace_pos.y + 0.5f);
     float z = 0.5f * v_lightspace_pos.z + 0.5f;
     float depth = texture(u_sampler_shadow0, uv_shadow).x;
-    // return depth;
+    return depth;
 
     float bias = 0.005f;
 
@@ -111,7 +111,7 @@ void main() {
         total_light += calc_point_light(u_point_lights[i]);
     }
 
-    // float f = calc_dir_light_shadow();
-    // out_color = vec4(f, f, f, 1.0f); 
-    out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
+    float f = calc_dir_light_shadow();
+    out_color = vec4(f, f, f, 1.0f);
+    // out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
 }

@@ -50,7 +50,7 @@
                 m_near: 0.1,
                 m_far: 100,
                 m_fov: 65,
-                m_aspect: 1.77778,
+                m_aspect: 0.562637,
                 m_sensitivity: 0.1,
                 children: []
             },
@@ -58,7 +58,7 @@
                 type: directional_light,
                 id: 5,
                 name: dirlit,
-                direction: [0, 0, -1],
+                direction: [0, -0.5, -1],
                 base: {
                         type: light,
                         color: [1, 1, 1],
@@ -66,7 +66,7 @@
                         diffuse_intensity: 1,
                         specular_intensity: 1
                     },
-                shadow_caster: false,
+                shadow_caster: true,
                 children: []
             },
             {

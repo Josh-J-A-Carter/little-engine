@@ -33,8 +33,8 @@ void application::create() {
     int screen_width = DM.w;
     int screen_height = DM.h;
 
-    // m_window_width = screen_width;
-    // m_window_height = screen_width * DEFAULT_ASPECT;
+    m_window_width = screen_width;
+    m_window_height = screen_width * DEFAULT_ASPECT;
 
     m_window = SDL_CreateWindow("Little Engine",
                                 (screen_width - m_window_width) / 2, (screen_height - m_window_height) / 2,
@@ -183,7 +183,9 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-
+    
+    m_lightpipeline.enable();
+    
     // Enable shadow texture
     m_shadowmap.bind_for_reading(SHADOW_TEX_UNIT0);
 
@@ -194,8 +196,6 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_CULL_FACE);
     // glCullFace(GL_BACK);
-
-    m_lightpipeline.enable();
 
 
     for (directional_light* d : d_lights) {
@@ -213,8 +213,6 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     // Camera uniforms
     glm::mat4 view_mat { cam->get_view_matrix() };
     glm::mat4 proj_mat { cam->get_perspective_matrix() };
-    ///// Orthographic projection:
-    // glm::mat4 proj_mat { glm::ortho(-1 * 16/9.0f, 1* 16/9.0f, -1.0f, 1.0f, -10.0f, 10.0f) };
 
     m_lightpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);

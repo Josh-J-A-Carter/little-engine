@@ -16,7 +16,7 @@ struct directional_light {
 
     glm::mat4 get_shadow_matrix() {
         // projection matrix * view matrix
-        return glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, -25.0f, 25.0f)
+        return glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 5.0f)
                 * glm::lookAt(glm::vec3(0), direction, glm::vec3(0, 1, 0));
     }
 };

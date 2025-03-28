@@ -58,7 +58,8 @@
         type: directional_light,
         id: 5,
         name: dirlit,
-        direction: [0, 0, -1],
+        direction: [0, -0.5, -1],
+        shadow_caster: true,
         base: {
             type: light,
             color: [1, 1, 1],
