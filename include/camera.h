@@ -20,7 +20,7 @@ struct camera {
     float m_sensitivity { 0.1 };
     
     float m_near { 0.1f };
-    float m_far { 10 };
+    float m_far { 100 };
     float m_fov { 65 };
     float m_aspect { 1 };
 
@@ -95,7 +95,7 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     if (!escaped && !app->unfocused) {
-        float speed { -0.01f * dt / app->desired_fps };
+        float speed { -0.1f * dt / app->desired_fps };
 
         if (state[SDL_SCANCODE_LCTRL]) speed *= 3;
 

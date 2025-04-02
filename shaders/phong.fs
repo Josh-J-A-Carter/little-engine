@@ -62,7 +62,7 @@ vec4 calc_base_light(light base, vec3 direction, float shadow_factor) {
     vec4 diffuse_color = vec4(base.color, 1.0f) * vec4(u_material.diffuse_color, 1.0f) * base.diffuse_intensity * diffuse;
 
     vec3 pixel_to_cam = normalize(u_camera_pos - v_world_pos);
-    vec3 reflection = normalize(reflect(direction * 10.0f, v_normal * 10.0f));
+    vec3 reflection = normalize(reflect(direction, v_normal)); //normalize(reflect(direction * 10.0f, v_normal * 10.0f));
     float specular_base = clamp(dot(pixel_to_cam, reflection), 0.0f, 1.0f);
     float specular_exponent = texture(u_sampler_specular, v_texcoord0).r * 255.0f;
     float specular = 0.0f;
@@ -77,7 +77,7 @@ vec4 calc_point_light(point_light light) {
     vec3 dir = v_world_pos - light.world_pos;
     vec4 unscaled_emission = calc_base_light(light.base, dir, 1.0f);
 
-    float d = length(dir) * 10.0f;
+    float d = length(dir); // * 10.0f;
     float scale_factor = light.attn_const + light.attn_linear * d + light.attn_exp * d * d;
     vec4 scaled_emission = unscaled_emission / scale_factor;
 
@@ -88,12 +88,12 @@ float calc_dir_light_shadow() {
     vec2 uv_shadow = vec2(0.5f * v_lightspace_pos.x + 0.5f, 0.5f * v_lightspace_pos.y + 0.5f);
     float z = 0.5f * v_lightspace_pos.z + 0.5f;
     float depth = texture(u_sampler_shadow0, uv_shadow).x;
-    return depth;
+    // return depth;
 
-    float bias = 0.005f;
+    float bias = -0.00025f;
 
-    if (z + bias < depth) return 0.5f;
-    return 1.0f;
+    if (z + bias < depth) return 1.0f;
+    return 0.0f;
 }
 
 vec4 calc_dir_light(dir_light light) {
@@ -113,5 +113,5 @@ void main() {
 
     float f = calc_dir_light_shadow();
     out_color = vec4(f, f, f, 1.0f);
-    // out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
+    out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
 }
