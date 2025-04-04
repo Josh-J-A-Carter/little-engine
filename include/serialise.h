@@ -297,7 +297,7 @@ namespace serial {
                 // If this is coming from a scene-node, include child scene_nodes as an attribute
                 if (sc) {
                     os << ",\n" << indent(indt + 1) << "children: ";
-                    serialise_node_list(os, sc->children, indt + 2);
+                    serialise_node_list(os, sc->children, indt + 1);
                 }
 
                 os << "\n" << indent(indt) << "}";
@@ -309,7 +309,7 @@ namespace serial {
                 os << indent(indt + 1) << field_name << ": ";
                 // Always send nullptr for the scene_node*, since we don't want child objects to reuse it
                 // - if the child objects are themselves scene_node*, then they can just use themselves
-                serialise(os, field_value, nullptr, indt + 2);
+                serialise(os, field_value, nullptr, indt + 1);
             }
     };
 }

@@ -88,12 +88,11 @@ float calc_dir_light_shadow() {
     vec2 uv_shadow = vec2(0.5f * v_lightspace_pos.x + 0.5f, 0.5f * v_lightspace_pos.y + 0.5f);
     float z = 0.5f * v_lightspace_pos.z + 0.5f;
     float depth = texture(u_sampler_shadow0, uv_shadow).x;
-    // return depth;
+    
+    float bias = 0.0025f;
 
-    float bias = -0.00025f;
-
-    if (z + bias < depth) return 1.0f;
-    return 0.0f;
+    if (z > depth + bias) return 0.0f;
+    return 1.0f;
 }
 
 vec4 calc_dir_light(dir_light light) {

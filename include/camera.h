@@ -18,6 +18,7 @@ struct camera {
 
     glm::vec2 m_mouse { 0, 0 };
     float m_sensitivity { 0.1 };
+    float m_speed { 1 };
     
     float m_near { 0.1f };
     float m_far { 100 };
@@ -95,7 +96,7 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     if (!escaped && !app->unfocused) {
-        float speed { -0.1f * dt / app->desired_fps };
+        float speed { cam->m_speed * -0.025f * dt / app->desired_fps };
 
         if (state[SDL_SCANCODE_LCTRL]) speed *= 3;
 
@@ -141,6 +142,7 @@ namespace serial {
         REPORT(sr, m_fov)
         REPORT(sr, m_aspect)
         REPORT(sr, m_sensitivity)
+        REPORT(sr, m_speed)
     }
 
     template <>
@@ -157,6 +159,7 @@ namespace serial {
         DESERIALISE_VAL(r, n, m_fov)
         DESERIALISE_VAL(r, n, m_aspect)
         DESERIALISE_VAL(r, n, m_sensitivity)
+        DESERIALISE_VAL(r, n, m_speed)
 
         return r;
     }

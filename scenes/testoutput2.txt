@@ -8,10 +8,10 @@
                 id: 1,
                 name: cube,
                 m_transform: {
-                        type: transform,
-                        pos: [0, 0, 0],
-                        rot: [0, 0, 0]
-                    },
+                    type: transform,
+                    pos: [0, 0, 0],
+                    rot: [0, 0, 0]
+                },
                 filename: ./assets/cube.obj,
                 children: []
             },
@@ -20,10 +20,10 @@
                 id: 2,
                 name: sphere,
                 m_transform: {
-                        type: transform,
-                        pos: [0, 0.5, 0],
-                        rot: [0, 0, 0]
-                    },
+                    type: transform,
+                    pos: [0, 0.5, 0],
+                    rot: [0, 0, 0]
+                },
                 filename: ./assets/sphere.obj,
                 children: []
             },
@@ -32,10 +32,10 @@
                 id: 3,
                 name: Floor,
                 m_transform: {
-                        type: transform,
-                        pos: [0, -0.1, 0],
-                        rot: [0, 0, 0]
-                    },
+                    type: transform,
+                    pos: [0, -0.1, 0],
+                    rot: [0, 0, 0]
+                },
                 filename: ./assets/floor.obj,
                 children: []
             },
@@ -52,21 +52,23 @@
                 m_fov: 65,
                 m_aspect: 0.562637,
                 m_sensitivity: 0.1,
+                m_speed: 1,
                 children: []
             },
             {
                 type: directional_light,
                 id: 5,
                 name: dirlit,
-                direction: [0, -1, -1],
+                direction: [0, -2.5, -1],
                 base: {
-                        type: light,
-                        color: [1, 1, 1],
-                        ambient_intensity: 0.3,
-                        diffuse_intensity: 1,
-                        specular_intensity: 1
-                    },
+                    type: light,
+                    color: [1, 1, 1],
+                    ambient_intensity: 0.3,
+                    diffuse_intensity: 1,
+                    specular_intensity: 1
+                },
                 shadow_caster: true,
+                frequency: 0.25,
                 children: []
             },
             {
@@ -74,17 +76,17 @@
                 id: 6,
                 name: ptlit,
                 transform: {
-                        type: transform,
-                        pos: [-0.5, 0.5, 0],
-                        rot: [0, 0, 0]
-                    },
+                    type: transform,
+                    pos: [-0.5, 0.5, 0],
+                    rot: [0, 0, 0]
+                },
                 base: {
-                        type: light,
-                        color: [1, 0.5, 1],
-                        ambient_intensity: 0.4,
-                        diffuse_intensity: 2,
-                        specular_intensity: 1
-                    },
+                    type: light,
+                    color: [1, 0.5, 1],
+                    ambient_intensity: 0.3,
+                    diffuse_intensity: 1,
+                    specular_intensity: 1
+                },
                 attn_const: 1,
                 attn_linear: 1,
                 attn_exp: 0,
