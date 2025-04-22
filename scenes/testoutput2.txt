@@ -9,7 +9,7 @@
                 name: cube,
                 m_transform: {
                     type: transform,
-                    pos: [0, 0, 0],
+                    pos: [0, 1, 0],
                     rot: [0, 0, 0]
                 },
                 filename: ./assets/cube.obj,
@@ -21,7 +21,7 @@
                 name: sphere,
                 m_transform: {
                     type: transform,
-                    pos: [0, 0.5, 0],
+                    pos: [0, 4, 0],
                     rot: [0, 0, 0]
                 },
                 filename: ./assets/sphere.obj,
@@ -40,26 +40,37 @@
                 children: []
             },
             {
+                type: renderer,
+                id: 7,
+                name: cube,
+                m_transform: {
+                    type: transform,
+                    pos: [65, 1, 0],
+                    rot: [0, 0, 0]
+                },
+                filename: ./assets/cube.obj,
+                children: []
+            },
+            {
                 type: camera,
                 id: 4,
                 name: cammy,
-                m_pos: [0, 0, 0],
+                m_pos: [0, 4, 3],
                 m_forward: [0, 0, -1],
                 m_up: [0, 1, 0],
                 m_facing: [0, 0, -1],
                 m_near: 0.1,
                 m_far: 100,
                 m_fov: 65,
-                m_aspect: 0.562637,
                 m_sensitivity: 0.1,
-                m_speed: 1,
+                m_speed: 2,
                 children: []
             },
             {
                 type: directional_light,
                 id: 5,
                 name: dirlit,
-                direction: [0, -2.5, -1],
+                direction: [0, -0.5, -1],
                 base: {
                     type: light,
                     color: [1, 1, 1],
@@ -68,7 +79,7 @@
                     specular_intensity: 1
                 },
                 shadow_caster: true,
-                frequency: 0.25,
+                frequency: 0,
                 children: []
             },
             {

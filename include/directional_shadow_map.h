@@ -3,8 +3,8 @@
 
 #include <glad/glad.h>
 
-#define DEFAULT_SHADOW_MAP_WIDTH 1920 * 4
-#define DEFAULT_SHADOW_MAP_HEIGHT 1920 * 4
+#define DEFAULT_SHADOW_MAP_WIDTH 1920
+#define DEFAULT_SHADOW_MAP_HEIGHT 1920
 
 struct directional_shadow_map {
     private:

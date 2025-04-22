@@ -84,19 +84,23 @@ vec4 calc_point_light(point_light light) {
     return scaled_emission;
 }
 
-float calc_dir_light_shadow() {
+float calc_dir_light_shadow(vec3 light_direction) {
     vec2 uv_shadow = vec2(0.5f * v_lightspace_pos.x + 0.5f, 0.5f * v_lightspace_pos.y + 0.5f);
     float z = 0.5f * v_lightspace_pos.z + 0.5f;
     float depth = texture(u_sampler_shadow0, uv_shadow).x;
-    
-    float bias = 0.0025f;
+    return depth;
 
+    float diffuse = clamp(dot(normalize(v_normal), -normalize(light_direction)), 0.0f, 1.0f);
+    // float bias = 0.0025f;
+    float bias = mix(0.005f, 0.0005f, diffuse);
+
+    if (depth >= 1.0f) return 1.0f;
     if (z > depth + bias) return 0.0f;
     return 1.0f;
 }
 
 vec4 calc_dir_light(dir_light light) {
-    return calc_base_light(light.base, light.direction, calc_dir_light_shadow());
+    return calc_base_light(light.base, light.direction, calc_dir_light_shadow(light.direction));
 }
 
 void main() {
@@ -110,7 +114,7 @@ void main() {
         total_light += calc_point_light(u_point_lights[i]);
     }
 
-    float f = calc_dir_light_shadow();
+    float f = calc_dir_light_shadow(vec3(0.0f, 0.0f, 0.0f));
     out_color = vec4(f, f, f, 1.0f);
-    out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
+    // out_color = texture(u_sampler_diffuse, v_texcoord0) * total_light;
 }

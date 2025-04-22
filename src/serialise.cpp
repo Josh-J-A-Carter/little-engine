@@ -398,17 +398,13 @@ namespace serial {
         // Parse the raw JSON to a tree data structure before further processing it
         arena* parse_arena = new arena { PARSE_ARENA_SIZE };
         option<node*, error> json_parse_result = parse_file_to_node_tree(*parse_arena, filename);
-        std::cout << "Completed parsing JSON to node tree" << std::endl;
         
         if (std::holds_alternative<error>(json_parse_result)) {
             std::cout << "Error: " << std::get<error>(json_parse_result).message << std::endl;
             delete parse_arena;
             return std::get<error>(json_parse_result);
         }
-        
-        // std::cout << "Got node structure:" << std::endl;
-        // std::get<node*>(json_parse_result)->print();
-        
+                
         // Parse the tree structure into an actual scene
         option<scene*, error> node_parse_result = parse_node_tree_to_scene(std::get<node*>(json_parse_result));
 

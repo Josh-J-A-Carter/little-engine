@@ -8,6 +8,7 @@
 #include <locale>
 
 #include <glad/glad.h>
+#include "glm/mat4x4.hpp"
 
 #define DIFFUSE_TEX_UNIT        GL_TEXTURE0
 #define DIFFUSE_TEX_UNIT_INDEX  0
@@ -66,5 +67,9 @@ using option = std::variant<S, T>;
 struct error {
     std::string message;
 };
+
+void print_mat(glm::mat4& m);
+void print_vec(glm::vec3& m);
+void print_vec(glm::vec4& m);
 
 #endif

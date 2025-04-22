@@ -9,6 +9,7 @@
 #include "serialise.h"
 
 struct application;
+struct camera;
 
 struct directional_light {
     glm::vec3 direction { 0, 0, -1 };
@@ -16,11 +17,7 @@ struct directional_light {
     bool shadow_caster { false };
     float frequency { 0 };
 
-    glm::mat4 get_shadow_matrix() {
-        // projection matrix * view matrix
-        return glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 5.0f)
-                * glm::lookAt(glm::vec3(0), direction, glm::vec3(0, 1, 0));
-    }
+    glm::mat4 get_shadow_matrix(camera* camera, glm::mat4& camera_view);
 };
 
 REGISTER_PARSE_REF(directional_light);

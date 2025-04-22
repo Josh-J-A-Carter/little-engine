@@ -56,9 +56,8 @@ struct camera {
 
 template<>
 inline void load<camera>(application* app, scene* scene, scene_node* this_node, camera* cam) {
-    cam->init_pos({ 0, 0, 0 });
     cam->init_aspect({ app->aspect() });
-    cam->init_clip(0.1, 100);
+    cam->init_clip(cam->m_near, cam->m_far);
 }
 
 
@@ -96,7 +95,7 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     if (!escaped && !app->unfocused) {
-        float speed { cam->m_speed * -0.025f * dt / app->desired_fps };
+        float speed { cam->m_speed * -0.1f * dt / app->desired_fps };
 
         if (state[SDL_SCANCODE_LCTRL]) speed *= 3;
 
@@ -140,7 +139,7 @@ namespace serial {
         REPORT(sr, m_near)
         REPORT(sr, m_far)
         REPORT(sr, m_fov)
-        REPORT(sr, m_aspect)
+        // REPORT(sr, m_aspect)
         REPORT(sr, m_sensitivity)
         REPORT(sr, m_speed)
     }
@@ -157,7 +156,7 @@ namespace serial {
         DESERIALISE_VAL(r, n, m_near)
         DESERIALISE_VAL(r, n, m_far)
         DESERIALISE_VAL(r, n, m_fov)
-        DESERIALISE_VAL(r, n, m_aspect)
+        // DESERIALISE_VAL(r, n, m_aspect)
         DESERIALISE_VAL(r, n, m_sensitivity)
         DESERIALISE_VAL(r, n, m_speed)
 

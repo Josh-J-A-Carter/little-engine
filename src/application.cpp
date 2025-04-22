@@ -167,14 +167,27 @@ void application::render() {
     std::vector<directional_light*> d_lights = m_scene->get_directional_lights();
     std::vector<point_light*> p_lights = m_scene->get_point_lights();
 
+    // View & projection matrices for camera & lights
+    glm::mat4 view_mat { cam->get_view_matrix() };
+    glm::mat4 proj_mat { cam->get_perspective_matrix() };
+    glm::mat4 shadow_mat {};
+
+    for (directional_light* d : d_lights) {
+        if (d->shadow_caster) {
+            shadow_mat = d->get_shadow_matrix(cam, view_mat);
+            break;
+        }
+    }
+
     // Shadow pass
-    render_shadows(cam, d_lights, p_lights);
+    render_shadows(cam, d_lights, p_lights, shadow_mat);
 
     // Lighting pass
-    render_lighting(cam, d_lights, p_lights);
+    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat);
 }
 
-void application::render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights) {
+void application::render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
+                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat) {
 
     // Skybox colour
     glm::vec3 night { 0.2, 0.2, 0.4 };
@@ -185,7 +198,7 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     glBindTexture(GL_TEXTURE_2D, 0);
     
     m_lightpipeline.enable();
-    
+
     // Enable shadow texture
     m_shadowmap.bind_for_reading(SHADOW_TEX_UNIT0);
 
@@ -195,27 +208,18 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
 
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
+    glCullFace(GL_BACK);
 
-
-    for (directional_light* d : d_lights) {
-        if (d->shadow_caster) {
-            glm::mat4 mat { d->get_shadow_matrix() };
-            m_lightpipeline.set_uniform(pipeline::UNIFORM_SHADOW0_MAT, mat);
-            break;
-        }
-    }
     
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DIFFUSE, DIFFUSE_TEX_UNIT_INDEX);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, SPECULAR_TEX_UNIT_INDEX);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SHADOW0, SHADOW_TEX_UNIT0_INDEX);
     
     // Camera uniforms
-    glm::mat4 view_mat { cam->get_view_matrix() };
-    glm::mat4 proj_mat { cam->get_perspective_matrix() };
-
     m_lightpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_SHADOW0_MAT, shadow_mat);
+
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CAMERA, cam->position());
 
     // Miscellaneous
@@ -234,21 +238,17 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     gl_error_check_barrier
 }
 
-void application::render_shadows(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights) {
+void application::render_shadows(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
+                                    glm::mat4& shadow_mat) {
     
     m_shadowmap.bind_for_writing();
     glEnable(GL_DEPTH_TEST);
     glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
 
     m_shadowpipeline.enable();
 
-    for (directional_light* d : d_lights) {
-        if (d->shadow_caster) {
-            glm::mat4 mat { d->get_shadow_matrix() };
-            m_shadowpipeline.set_uniform(pipeline::UNIFORM_SHADOW0_MAT, mat);
-            break;
-        }
-    }
+    m_shadowpipeline.set_uniform(pipeline::UNIFORM_SHADOW0_MAT, shadow_mat);
 
     m_scene->render(this, &m_shadowpipeline);
 

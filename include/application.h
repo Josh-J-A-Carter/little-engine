@@ -48,9 +48,9 @@ struct application {
         
         float calc_program_time();
 
-        void render_lighting(camera*, std::vector<directional_light*>&, std::vector<point_light*>&);
+        void render_lighting(camera*, std::vector<directional_light*>&, std::vector<point_light*>&, glm::mat4&, glm::mat4&, glm::mat4&);
 
-        void render_shadows(camera*, std::vector<directional_light*>&, std::vector<point_light*>&);
+        void render_shadows(camera*, std::vector<directional_light*>&, std::vector<point_light*>&, glm::mat4&);
         
     public:
         const float desired_fps = 1 / 60.0f;
