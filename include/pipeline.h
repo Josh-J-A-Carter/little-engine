@@ -21,6 +21,7 @@ struct pipeline {
             UNIFORM_SAMPLER_DIFFUSE,
             UNIFORM_SAMPLER_SPECULAR,
             UNIFORM_SAMPLER_SHADOW0,
+            UNIFORM_SAMPLER_NOISE,
             UNIFORM_DIR_LIGHTS,
             UNIFORM_POINT_LIGHTS,
             UNIFORM_MATERIAL,

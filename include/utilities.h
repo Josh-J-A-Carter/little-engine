@@ -18,6 +18,9 @@
 #define SHADOW_TEX_UNIT0_INDEX  2
 #define SHADOW_TEX_UNIT1        GL_TEXTURE3
 #define SHADOW_TEX_UNIT1_INDEX  3
+#define NOISE_TEX_UNIT          GL_TEXTURE4
+#define NOISE_TEX_UNIT_INDEX    4
+
 
 const int i = GL_TEXTURE0;
 

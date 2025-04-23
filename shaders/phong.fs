@@ -48,6 +48,7 @@ uniform material u_material;
 uniform sampler2D u_sampler_diffuse;
 uniform sampler2D u_sampler_specular;
 uniform sampler2D u_sampler_shadow0;
+uniform sampler2D u_sampler_noise;
 
 uniform vec3 u_camera_pos;
 
@@ -85,18 +86,28 @@ vec4 calc_point_light(point_light light) {
 }
 
 float calc_dir_light_shadow(vec3 light_direction) {
-    vec2 uv_shadow = vec2(0.5f * v_lightspace_pos.x + 0.5f, 0.5f * v_lightspace_pos.y + 0.5f);
+    vec2 uv = vec2(0.5f * v_lightspace_pos.x + 0.5f, 0.5f * v_lightspace_pos.y + 0.5f);
     float z = 0.5f * v_lightspace_pos.z + 0.5f;
-    float depth = texture(u_sampler_shadow0, uv_shadow).x;
-    // return depth;
-
+    
     float diffuse = clamp(dot(normalize(v_normal), -normalize(light_direction)), 0.0f, 1.0f);
     // float bias = 0.0025f;
-    float bias = mix(0.005f, 0.0005f, diffuse);
+    float bias = mix(0.025f, 0.001f, diffuse);
+    // return texture(u_sampler_shadow0, uv).x;
 
-    if (depth >= 1.0f) return 1.0f;
-    if (z > depth + bias) return 0.0f;
-    return 1.0f;
+    float shadow = 0.0f;
+    ivec2 t = textureSize(u_sampler_shadow0, 0);
+    vec2 shadow_texel_size = vec2(1.0f / float(t.x), 1.0f / float(t.y));
+
+    float rad = 2.0f;
+
+    for (float x = -rad ; x <= rad ; x += 1.0f) {
+        for (float y = -rad ; y <= rad ; y += 1.0f) {
+            float depth = texture(u_sampler_shadow0, uv + vec2(x, y) * shadow_texel_size).x;
+            shadow += z - bias > depth ? 0.0f : 1.0f;
+        }
+    }
+
+    return shadow / ((2.0f * rad + 1.0f) * (2.0f * rad + 1.0f));
 }
 
 vec4 calc_dir_light(dir_light light) {

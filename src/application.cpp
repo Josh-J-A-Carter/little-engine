@@ -9,6 +9,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "serialise.h"
+#include "texture.h"
 
 void application::create() {
     m_program_time_start = std::chrono::high_resolution_clock::now();
@@ -77,6 +78,10 @@ void application::create() {
 
     // Set up shadow map
     m_shadowmap.initialise();
+    
+    // Noise texture
+    m_noise_texture = new texture(GL_TEXTURE_2D, "assets/noise.png");
+    m_noise_texture->load();
 }
 
 void application::destroy() {
@@ -202,6 +207,9 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     // Enable shadow texture
     m_shadowmap.bind_for_reading(SHADOW_TEX_UNIT0);
 
+    // Enable noise texture
+    m_noise_texture->bind(NOISE_TEX_UNIT);
+
     glViewport(0, 0, width(), height());
     glClearColor(now.r, now.g, now.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -214,6 +222,7 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DIFFUSE, DIFFUSE_TEX_UNIT_INDEX);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, SPECULAR_TEX_UNIT_INDEX);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SHADOW0, SHADOW_TEX_UNIT0_INDEX);
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_NOISE, NOISE_TEX_UNIT_INDEX);
     
     // Camera uniforms
     m_lightpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);

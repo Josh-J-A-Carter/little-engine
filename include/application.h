@@ -16,6 +16,7 @@
 struct camera;
 struct directional_light;
 struct point_light;
+struct texture;
 
 #define DEFAULT_WIDTH 1920
 #define DEFAULT_HEIGHT 1080
@@ -34,6 +35,7 @@ struct application {
         pipeline m_lightpipeline {};
         pipeline m_shadowpipeline {};
         directional_shadow_map m_shadowmap {};
+        texture* m_noise_texture { nullptr };
 
         scene* m_scene { nullptr };
 
