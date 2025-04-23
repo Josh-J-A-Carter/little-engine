@@ -100,6 +100,9 @@ float calc_dir_light_shadow(vec3 light_direction) {
 
     float rad = 2.0f;
 
+    // If any geometry on screen is beyond in the shadow map, set it to be without shadows
+    if (z >= 1.0f) return 1.0f;
+
     for (float x = -rad ; x <= rad ; x += 1.0f) {
         for (float y = -rad ; y <= rad ; y += 1.0f) {
             float depth = texture(u_sampler_shadow0, uv + vec2(x, y) * shadow_texel_size).x;

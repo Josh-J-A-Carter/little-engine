@@ -80,49 +80,6 @@ struct frustum {
 };
 
 
-// glm::mat4 directional_light::get_shadow_matrix(camera* camera, glm::mat4& camera_view) {
-//     float tan_half_fov = tan(glm::radians(camera->m_fov / 2.0f));
-
-//     float near_z = camera->m_near;
-//     float near_x = near_z * tan_half_fov;
-//     float near_y = near_x / camera->m_aspect;
-
-//     float far_z = camera->m_far;
-//     float far_x = far_z * tan_half_fov;
-//     float far_y = far_x / camera->m_aspect;
-
-//     // View space frustum corners
-//     frustum view_frustum {
-//         {-near_x, -near_y, -near_z, 1.0f}, {near_x, -near_y, -near_z, 1.0f},
-//         {-near_x,  near_y, -near_z, 1.0f}, {near_x,  near_y, -near_z, 1.0f},
-//         {-far_x, -far_y, -far_z, 1.0f},    {far_x, -far_y, -far_z, 1.0f},
-//         {-far_x,  far_y, -far_z, 1.0f},    {far_x,  far_y, -far_z, 1.0f}
-//     };
-
-//     // Transform to world space
-//     glm::mat4 view_inv = glm::inverse(camera_view);
-//     frustum world_frustum = view_frustum.transform(view_inv);
-
-//     // Fixed light view matrix (use large offset to simulate far-away sun)
-//     glm::vec3 light_target = camera->position(); // Center on camera position
-//     glm::vec3 light_pos = light_target + direction;
-//     glm::mat4 light_view = glm::lookAt(light_pos, light_target, glm::vec3(0, 1, 0));
-
-//     // Transform frustum to light space
-//     frustum light_space_frustum = world_frustum.transform(light_view);
-//     bounds light_bounds = light_space_frustum.bounding_box();
-
-//     // Slight z range padding to avoid clipping
-//     float z_mult = 10.0f; // optional
-//     glm::mat4 light_proj = glm::ortho(
-//         light_bounds.min_x, light_bounds.max_x,
-//         light_bounds.min_y, light_bounds.max_y,
-//         light_bounds.min_z * z_mult, light_bounds.max_z * z_mult
-//     );
-
-//     return light_proj * light_view;
-// }
-
 glm::mat4 directional_light::get_shadow_matrix(camera* camera, glm::mat4& camera_view) {
 
     // Get the frustum's view space corners
@@ -131,8 +88,8 @@ glm::mat4 directional_light::get_shadow_matrix(camera* camera, glm::mat4& camera
     float near_z = camera->m_near;
     float near_x = near_z * tan_half_fov;
     float near_y = near_z * tan_half_fov / camera->m_aspect;
-
-    float far_z = camera->m_far;
+    
+    float far_z = camera->m_shadow_range;
     float far_x = far_z * tan_half_fov;
     float far_y = far_z * tan_half_fov / camera->m_aspect;
 
