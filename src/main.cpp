@@ -43,17 +43,6 @@ bool input() {
 }
 
 void draw() {
-    // Resetting stuff
-    // glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-
-    // glBlendFunc(GL_ONE, GL_ZERO);
-    // glDisable(GL_BLEND);
-    
-    // glViewport(0, 0, g_app.width(), g_app.height());
-    // glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
     // Render the scene for this pipeline
     g_app.render();
 
@@ -100,9 +89,8 @@ int main(int argv, char** args)  {
     g_app.create();
     void* context = g_app.window();
 
-    std::optional<error> res = g_app.load_scene("scenes/testoutput.txt");
-    if (res.has_value()) std::cout << "Error in opening scene: " << res.value().message << std::endl;
-    g_app.save_scene("scenes/testoutput2.txt");
+    std::optional<error> res = g_app.load_scene("scenes/main.scene");
+    if (res.has_value()) std::cout << "Error in opening main scene: " << res.value().message << std::endl;
 
 #ifdef __EMSCRIPTEN__
     int fps = 0;

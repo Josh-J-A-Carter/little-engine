@@ -15,6 +15,8 @@ struct renderer {
     transform m_transform {};
     mesh m_mesh {};
     std::string filename {};
+
+    int m_pipeline { STANDARD_PIPELINE };
 };
 
 struct application;
@@ -27,6 +29,10 @@ inline void load<renderer>(application* app, scene* scene, scene_node* this_node
 
 template<>
 inline void render<renderer>(application* app, scene* scene, scene_node* this_node, renderer* r, pipeline* p) {
+
+    // Only render if the renderer uses this pipeline
+    if (r->m_pipeline != p->identifier()) return;
+
     // Model matrix
     glm::mat4 model_mat { r->m_transform.get_model_matrix() };
     p->set_uniform(pipeline::UNIFORM_MODEL_MAT, model_mat);
@@ -46,6 +52,7 @@ namespace serial {
 
         REPORT(sr, m_transform)
         REPORT(sr, filename)
+        REPORT(sr, m_pipeline)
     }
 
     template <>
@@ -54,6 +61,7 @@ namespace serial {
 
         DESERIALISE_VAL(r, n, m_transform)
         DESERIALISE_VAL(r, n, filename)
+        DESERIALISE_VAL(r, n, m_pipeline)
 
         return r;
     }

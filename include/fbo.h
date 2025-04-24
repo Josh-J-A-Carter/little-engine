@@ -6,23 +6,24 @@
 #define DEFAULT_SHADOW_MAP_WIDTH 1920 * 2
 #define DEFAULT_SHADOW_MAP_HEIGHT 1920 * 2
 
-struct directional_shadow_map {
+struct fbo {
     private:
         int m_pixel_width { DEFAULT_SHADOW_MAP_WIDTH };
         int m_pixel_height { DEFAULT_SHADOW_MAP_HEIGHT };
 
         GLuint m_fbo {};
-        GLuint m_texture {};
+        GLuint m_depth_texture {};
+        GLuint m_color_texture {};
 
+        bool m_depth_attachment { false };
+        bool m_color_attachment { false };
         
     public:
-        void initialise(int pixel_width, int pixel_height);
-        void initialise() {
-            initialise(m_pixel_width, m_pixel_height);
-        }
+        void initialise(int pixel_width, int pixel_height, bool depth, bool color);
         
         void bind_for_writing();
-        void bind_for_reading(GLenum texture_unit);
+        void bind_depth_for_reading(GLenum texture_unit);
+        void bind_color_for_reading(GLenum texture_unit);
 };
 
 #endif

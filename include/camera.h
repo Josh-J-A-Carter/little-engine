@@ -144,6 +144,7 @@ namespace serial {
         // REPORT(sr, m_aspect)
         REPORT(sr, m_sensitivity)
         REPORT(sr, m_speed)
+        REPORT(sr, m_mouse)
 
         REPORT(sr, m_shadow_range)
     }
@@ -163,6 +164,7 @@ namespace serial {
         // DESERIALISE_VAL(r, n, m_aspect)
         DESERIALISE_VAL(r, n, m_sensitivity)
         DESERIALISE_VAL(r, n, m_speed)
+        DESERIALISE_VAL(r, n, m_mouse)
 
         DESERIALISE_VAL(r, n, m_shadow_range)
 

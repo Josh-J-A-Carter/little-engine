@@ -10,7 +10,8 @@
 #include "directional_light.h"
 #include "material.h"
 
-void pipeline::initialise(std::vector<shader_src> shaders) {
+void pipeline::initialise(std::vector<shader_src> shaders, int identifier) {
+    m_identifier = identifier;
     m_program = glCreateProgram();
 
     for (shader_src src : shaders) add_shader(src.type, src.file_name);

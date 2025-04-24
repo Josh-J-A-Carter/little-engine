@@ -69,15 +69,21 @@ void application::create() {
     m_lightpipeline.initialise({
             { GL_VERTEX_SHADER, "shaders/phong.vs" },
             { GL_FRAGMENT_SHADER, "shaders/phong.fs" }
-        });
+        }, STANDARD_PIPELINE);
     
     m_shadowpipeline.initialise({
             { GL_VERTEX_SHADER, "shaders/shadow.vs" },
             { GL_FRAGMENT_SHADER, "shaders/shadow.fs" }
-        });
+        }, STANDARD_PIPELINE);
+
+    // Set up pipeline
+    m_waterpipeline.initialise({
+            { GL_VERTEX_SHADER, "shaders/water.vs" },
+            { GL_FRAGMENT_SHADER, "shaders/water.fs" }
+        }, WATER_PIPELINE);
 
     // Set up shadow map
-    m_shadowmap.initialise();
+    m_shadowmap.initialise(DEFAULT_SHADOW_MAP_WIDTH, DEFAULT_SHADOW_MAP_HEIGHT, true, false);
     
     // Noise texture
     m_noise_texture = new texture(GL_TEXTURE_2D, "assets/noise.png");
@@ -85,6 +91,8 @@ void application::create() {
 }
 
 void application::destroy() {
+    if (m_scene) save_scene();
+
     SDL_DestroyWindow(m_window);
 
     SDL_Quit();
@@ -141,10 +149,10 @@ std::optional<error> application::load_scene(std::string filename) {
     return std::nullopt;
 }
 
-std::optional<error> application::save_scene(std::string filename) {
+std::optional<error> application::save_scene() {
     if (m_scene == nullptr) return { error { "Attempted to saved scene, but no scene is active." } };
 
-    std::ofstream out { filename };
+    std::ofstream out { m_scene->filename };
     serial::serialise_scene(out, m_scene);
 
     return std::nullopt;
@@ -189,6 +197,9 @@ void application::render() {
 
     // Lighting pass
     render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat);
+
+    // Water pass
+    render_water(cam, view_mat, proj_mat);
 }
 
 void application::render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
@@ -205,7 +216,7 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     m_lightpipeline.enable();
 
     // Enable shadow texture
-    m_shadowmap.bind_for_reading(SHADOW_TEX_UNIT0);
+    m_shadowmap.bind_depth_for_reading(SHADOW_TEX_UNIT0);
 
     // Enable noise texture
     m_noise_texture->bind(NOISE_TEX_UNIT);
@@ -215,7 +226,6 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
     
@@ -260,6 +270,23 @@ void application::render_shadows(camera* cam, std::vector<directional_light*>& d
     m_shadowpipeline.set_uniform(pipeline::UNIFORM_SHADOW0_MAT, shadow_mat);
 
     m_scene->render(this, &m_shadowpipeline);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    gl_error_check_barrier
+}
+
+void application::render_water(camera* cam, glm::mat4& view_mat, glm::mat4& proj_mat) {
+    glEnable(GL_DEPTH_TEST);
+    // glClear(GL_DEPTH_BUFFER_BIT);
+
+    m_waterpipeline.enable();
+
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
+
+    m_scene->render(this, &m_waterpipeline);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -11,6 +11,10 @@
 #include "directional_light.h"
 #include "material.h"
 
+#define UNDEFINED_PIPELINE -1
+#define STANDARD_PIPELINE 0
+#define WATER_PIPELINE 1
+
 struct pipeline {
     public:
         enum uniform {
@@ -37,7 +41,7 @@ struct pipeline {
             std::string file_name;
         };
         
-        void initialise(std::vector<shader_src> shaders);
+        void initialise(std::vector<shader_src> shaders, int identifier);
 
         void enable();
 
@@ -49,6 +53,8 @@ struct pipeline {
         void set_uniform(uniform u, material& material);
         void set_uniform(uniform u, glm::vec3 vector);
 
+        int identifier() { return m_identifier; }
+
     private:
         void add_shader(GLuint type, std::string file_name);
 
@@ -59,6 +65,7 @@ struct pipeline {
         GLuint m_program {};
         std::vector<GLuint> m_temp_shader_handles {};
 
+        int m_identifier { UNDEFINED_PIPELINE };
 };
 
 #endif

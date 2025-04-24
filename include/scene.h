@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <optional>
+#include <string>
 
 #include "arena.h"
 #include "serialise.h"
@@ -20,6 +21,8 @@ struct camera;
 struct scene {
     arena arena { SCENE_ARENA_SIZE };
     scene_node* root { nullptr };
+
+    std::string filename {};
 
     inline void load(application* app) {
         root->load(app, this);

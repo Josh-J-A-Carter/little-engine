@@ -11,7 +11,7 @@
 #include "scene.h"
 #include "scene_node.h"
 #include "utilities.h"
-#include "directional_shadow_map.h"
+#include "fbo.h"
 
 struct camera;
 struct directional_light;
@@ -34,7 +34,8 @@ struct application {
 
         pipeline m_lightpipeline {};
         pipeline m_shadowpipeline {};
-        directional_shadow_map m_shadowmap {};
+        pipeline m_waterpipeline {};
+        fbo m_shadowmap {};
         texture* m_noise_texture { nullptr };
 
         scene* m_scene { nullptr };
@@ -53,6 +54,8 @@ struct application {
         void render_lighting(camera*, std::vector<directional_light*>&, std::vector<point_light*>&, glm::mat4&, glm::mat4&, glm::mat4&);
 
         void render_shadows(camera*, std::vector<directional_light*>&, std::vector<point_light*>&, glm::mat4&);
+
+        void render_water(camera*, glm::mat4&, glm::mat4&);
         
     public:
         const float desired_fps = 1 / 60.0f;
@@ -88,7 +91,7 @@ struct application {
 
         std::optional<error> load_scene(std::string);
 
-        std::optional<error> save_scene(std::string);
+        std::optional<error> save_scene();
 
         scene* current_scene();
 

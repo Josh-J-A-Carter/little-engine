@@ -95,11 +95,28 @@ namespace serial {
     }
 
     template<>
+    inline option<glm::vec2, error> deserialise_val<glm::vec2>(arena& arena, node* n) {
+        array_node* a { static_cast<array_node*>(n) };
+        glm::vec2 out {};
+
+        if (a->entries.size() != 2) return { error { "glm::vec2 field's value does not contain two entries." } };
+
+        for (int index = 0 ; index < 2 ; index += 1) {
+            node* entry = a->entries[index];
+            option<float, error> res = deserialise_val<float>(arena, entry);
+            if (std::holds_alternative<error>(res)) return std::get<error>(res);
+            out[index] = std::get<float>(res);
+        }
+
+        return out;
+    }
+
+    template<>
     inline option<glm::vec3, error> deserialise_val<glm::vec3>(arena& arena, node* n) {
         array_node* a { static_cast<array_node*>(n) };
         glm::vec3 out {};
 
-        if (a->entries.size() != 3) return { error { "glm::vec3 does not contain three entries." } };
+        if (a->entries.size() != 3) return { error { "glm::vec3 field's value does not contain three entries." } };
 
         for (int index = 0 ; index < 3 ; index += 1) {
             node* entry = a->entries[index];
@@ -244,6 +261,10 @@ namespace serial {
 
     inline void serialise(std::ostream& os, std::string_view s, const scene_node* _, int indt) {
         os << s;
+    }
+
+    inline void serialise(std::ostream& os, glm::vec2 v, const scene_node* _, int indt) {
+        os << "[" << v[0] << ", " << v[1] << "]";
     }
 
     inline void serialise(std::ostream& os, glm::vec3 v, const scene_node* _, int indt) {
