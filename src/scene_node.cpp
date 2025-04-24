@@ -7,8 +7,9 @@
 
 #include "directional_light.h"
 #include "point_light.h"
+#include "renderer.h"
+#include "pipeline.h"
 
-struct pipeline;
 struct application;
 struct scene;
 
@@ -57,10 +58,12 @@ std::optional<camera*> scene_node::get_camera() {
     return std::nullopt;
 }
 
-std::optional<renderer*> scene_node::get_renderer() {
-    if (component_type == scene_node_type::renderer) return static_cast<renderer*>(component);
+std::optional<renderer*> scene_node::get_water_renderer() {
+    if (component_type == scene_node_type::renderer
+        && static_cast<renderer*>(component)->m_pipeline == WATER_PIPELINE) return static_cast<renderer*>(component);
+
     for (scene_node* child : children) {
-        std::optional<renderer*> c = child->get_renderer();
+        std::optional<renderer*> c = child->get_water_renderer();
         if (c.has_value()) return c.value();
     }
 

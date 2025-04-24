@@ -202,7 +202,7 @@ void application::render() {
     render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, 0);
 
     // Water pass
-    std::optional<renderer*> water = m_scene->get_water();
+    std::optional<renderer*> water = m_scene->get_water_renderer();
     if (water.has_value()) render_water(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, water.value());
 }
 
@@ -307,7 +307,7 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
 
     // render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
 
-    
+
     // Clean up
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_ENABLED, 0.0f);
 

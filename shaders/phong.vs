@@ -29,5 +29,5 @@ void main() {
 
     v_lightspace_pos = u_shadow_matrix * u_model_matrix * vec4(in_position, 1.0f);
 
-    v_clip = dot(world_pos, u_clip_plane) * u_clip_enabled;
+    v_clip = dot(vec4(v_world_pos, 1.0f), -u_clip_plane) * u_clip_enabled;
 }

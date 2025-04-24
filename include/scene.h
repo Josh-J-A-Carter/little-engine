@@ -53,8 +53,8 @@ struct scene {
         return root->get_camera();
     }
 
-    inline std::optional<renderer*> get_water() {
-        return root->get_renderer();
+    inline std::optional<renderer*> get_water_renderer() {
+        return root->get_water_renderer();
     }
 };
 
