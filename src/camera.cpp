@@ -13,7 +13,7 @@ void camera::translate(glm::vec3 delta) {
 }
 
 void camera::rotate(glm::vec2 delta, bool constraint_check = true) {
-    delta *= m_sensitivity;
+    if (constraint_check) delta *= m_sensitivity;
     delta.x *= -1;
 
     if (abs(m_mouse.y + delta.y) > 80 && constraint_check) {

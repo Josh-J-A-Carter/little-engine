@@ -302,18 +302,18 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     float pitch = cam->m_mouse.y;
     cam->rotate({0, -2 * pitch}, false);
     glm::mat4 reflect_view { cam->get_view_matrix() };
+    
+    render_lighting(cam, d_lights, p_lights, reflect_view, proj_mat, shadow_mat, true);
     cam->m_pos += d;
     cam->rotate({0, 2 * pitch}, false);
 
-    render_lighting(cam, d_lights, p_lights, reflect_view, proj_mat, shadow_mat, true);
-
     // Refraction pass
-    // m_refractionmap.bind_for_writing();
+    m_refractionmap.bind_for_writing();
 
-    // glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y };
-    // m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, refract_normal);
+    glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y };
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, refract_normal);
 
-    // render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
+    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
 
     // Clean up
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_ENABLED, 0.0f);
@@ -326,10 +326,12 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     glEnable(GL_DEPTH_TEST);
 
     m_reflectionmap.bind_color_for_reading(REFLECT_TEX_UNIT);
+    m_refractionmap.bind_color_for_reading(REFRACT_TEX_UNIT);
 
     m_waterpipeline.enable();
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFLECTION, REFLECT_TEX_UNIT_INDEX);
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFRACTION, REFRACT_TEX_UNIT_INDEX);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);

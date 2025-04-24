@@ -12,6 +12,7 @@ void fbo::initialise(int pixel_width, int pixel_height, bool depth, bool color) 
     m_color_attachment = color;
 
     glGenFramebuffers(1, &m_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
     if (depth) {
         glGenTextures(1, &m_depth_texture);
@@ -26,7 +27,6 @@ void fbo::initialise(int pixel_width, int pixel_height, bool depth, bool color) 
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_colour);
     
         glBindTexture(GL_TEXTURE_2D, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depth_texture, 0);
     } else {
         glGenRenderbuffers(1, &m_depth_texture);
@@ -49,7 +49,6 @@ void fbo::initialise(int pixel_width, int pixel_height, bool depth, bool color) 
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_colour);
     
         glBindTexture(GL_TEXTURE_2D, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_color_texture, 0);
     } else {
         GLenum draw_buffers[1] { GL_NONE };
