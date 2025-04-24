@@ -12,5 +12,5 @@ out vec4 out_color;
 
 void main() {
     // out_color = vec4(0.2f, 0.1f, 1.0f, 1.0f);
-    out_color = texture(u_sampler_reflection, vec2(1.0f - v_texcoord0.x, 1.0f - v_texcoord0.y));
+    out_color = texture(u_sampler_reflection, vec2(v_texcoord0.x, v_texcoord0.y));
 }

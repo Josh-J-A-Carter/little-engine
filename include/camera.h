@@ -41,7 +41,7 @@ struct camera {
 
     glm::vec3 position();
 
-    void rotate(glm::vec2 delta);
+    void rotate(glm::vec2 delta, bool constraint_check = true);
 
     glm::vec2 rotation();
 

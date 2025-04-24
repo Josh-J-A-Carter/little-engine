@@ -199,7 +199,7 @@ void application::render() {
     render_shadows(cam, d_lights, p_lights, shadow_mat);
 
     // Lighting pass
-    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, 0);
+    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat);
 
     // Water pass
     std::optional<renderer*> water = m_scene->get_water_renderer();
@@ -297,16 +297,23 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     glm::vec4 reflect_normal { 0, 1, 0, -water->m_transform.pos.y };
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, reflect_normal);
 
-    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
+    float d = 2 * (cam->m_pos.y - water->m_transform.pos.y);
+    cam->m_pos -= d;
+    float pitch = cam->m_mouse.y;
+    cam->rotate({0, -2 * pitch}, false);
+    glm::mat4 reflect_view { cam->get_view_matrix() };
+    cam->m_pos += d;
+    cam->rotate({0, 2 * pitch}, false);
+
+    render_lighting(cam, d_lights, p_lights, reflect_view, proj_mat, shadow_mat, true);
 
     // Refraction pass
     // m_refractionmap.bind_for_writing();
 
     // glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y };
-    // m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_HEIGHT, refract_normal);
+    // m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, refract_normal);
 
     // render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
-
 
     // Clean up
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_ENABLED, 0.0f);

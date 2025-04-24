@@ -122,8 +122,7 @@ vec4 calc_dir_light(dir_light light) {
 void main() {
     // Discard fragment if necessary
     if (v_clip < 0.0f) discard;
-
-
+    
 
     vec4 total_light = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
