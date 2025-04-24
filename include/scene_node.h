@@ -14,6 +14,7 @@ struct scene;
 struct directional_light;
 struct point_light;
 struct camera;
+struct renderer;
 
 struct scene_node {
     std::string name { "Object" };
@@ -37,6 +38,7 @@ struct scene_node {
     void get_directional_lights(std::vector<directional_light*>& lights);
     void get_point_lights(std::vector<point_light*>& lights);
     std::optional<camera*> get_camera();
+    std::optional<renderer*> get_renderer();
 };
 
 template<typename T>

@@ -37,6 +37,8 @@ in vec2 v_texcoord0;
 in vec3 v_normal;
 in vec4 v_lightspace_pos;
 
+in float v_clip;
+
 // Lighting data
 uniform int u_num_dir_lights;
 uniform dir_light u_dir_lights[MAX_DIR_LIGHTS];
@@ -118,6 +120,11 @@ vec4 calc_dir_light(dir_light light) {
 }
 
 void main() {
+    // Discard fragment if necessary
+    if (v_clip < 0.0f) discard;
+
+
+
     vec4 total_light = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
     for (int i = 0 ; i < u_num_dir_lights ; i += 1) {

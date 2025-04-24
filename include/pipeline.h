@@ -35,7 +35,9 @@ struct pipeline {
             UNIFORM_MATERIAL__DIFFUSE_COLOR,
             UNIFORM_MATERIAL__SPECULAR_COLOR,
             UNIFORM_TIME,
-            UNIFORM_CAMERA
+            UNIFORM_CAMERA,
+            UNIFORM_CLIP_PLANE,
+            UNIFORM_CLIP_ENABLED
         };
 
         struct shader_src {
@@ -54,6 +56,7 @@ struct pipeline {
         void set_uniform(uniform u, std::vector<point_light*> lights);
         void set_uniform(uniform u, material& material);
         void set_uniform(uniform u, glm::vec3 vector);
+        void set_uniform(uniform u, glm::vec4 vector);
 
         int identifier() { return m_identifier; }
 

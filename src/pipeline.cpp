@@ -88,6 +88,9 @@ GLint pipeline::get_uniform_location(uniform u) {
 
     else if (u == UNIFORM_CAMERA) loc = glGetUniformLocation(m_program, "u_camera_pos");
 
+    else if (u == UNIFORM_CLIP_PLANE) loc = glGetUniformLocation(m_program, "u_clip_plane");
+    else if (u == UNIFORM_CLIP_ENABLED) loc = glGetUniformLocation(m_program, "u_clip_enabled");
+
     else {
         std::cerr << "Error - unhandled uniform variant, with code " << u << std::endl;
         exit(EXIT_FAILURE);
@@ -180,6 +183,10 @@ void pipeline::set_uniform(uniform u, material& material) {
 
 void pipeline::set_uniform(uniform u, glm::vec3 vector) {
     glUniform3fv(get_uniform_location(u), 1, &vector[0]);
+}
+
+void pipeline::set_uniform(uniform u, glm::vec4 vector) {
+    glUniform4fv(get_uniform_location(u), 1, &vector[0]);
 }
 
 void pipeline::finalise() {

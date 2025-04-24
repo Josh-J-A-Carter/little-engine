@@ -17,6 +17,7 @@ struct application;
 struct directional_light;
 struct point_light;
 struct camera;
+struct renderer;
 
 struct scene {
     arena arena { SCENE_ARENA_SIZE };
@@ -50,6 +51,10 @@ struct scene {
 
     inline std::optional<camera*> get_camera() {
         return root->get_camera();
+    }
+
+    inline std::optional<renderer*> get_water() {
+        return root->get_renderer();
     }
 };
 

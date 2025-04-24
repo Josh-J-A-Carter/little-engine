@@ -17,6 +17,7 @@ struct camera;
 struct directional_light;
 struct point_light;
 struct texture;
+struct renderer;
 
 #define DEFAULT_WIDTH 1920
 #define DEFAULT_HEIGHT 1080
@@ -56,13 +57,13 @@ struct application {
         float calc_program_time();
 
         void render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
-                        glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, GLuint fbo);
+                        glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, bool external_setup = false);
 
         void render_shadows(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights, 
                         glm::mat4& shadow_mat);
 
         void render_water(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
-                      glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat);
+                      glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, renderer* water);
         
     public:
         const float desired_fps = 1 / 60.0f;

@@ -48,10 +48,22 @@ void scene_node::get_point_lights(std::vector<point_light*>& lights) {
 
 std::optional<camera*> scene_node::get_camera() {
     if (component_type == scene_node_type::camera) return static_cast<camera*>(component);
+
     for (scene_node* child : children) {
         std::optional<camera*> c = child->get_camera();
         if (c.has_value()) return c.value();
     }
+
+    return std::nullopt;
+}
+
+std::optional<renderer*> scene_node::get_renderer() {
+    if (component_type == scene_node_type::renderer) return static_cast<renderer*>(component);
+    for (scene_node* child : children) {
+        std::optional<renderer*> c = child->get_renderer();
+        if (c.has_value()) return c.value();
+    }
+
     return std::nullopt;
 }
 

@@ -10,6 +10,7 @@
 #include "camera.h"
 #include "serialise.h"
 #include "texture.h"
+#include "renderer.h"
 
 void application::create() {
     m_program_time_start = std::chrono::high_resolution_clock::now();
@@ -201,25 +202,25 @@ void application::render() {
     render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, 0);
 
     // Water pass
-    render_water(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat);
+    std::optional<renderer*> water = m_scene->get_water();
+    if (water.has_value()) render_water(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, water.value());
 }
 
 void application::render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
-                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, GLuint framebuffer) {
+                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, bool external_setup = false) {
 
     // Skybox colour
     glm::vec3 night { 0.2, 0.2, 0.4 };
     glm::vec3 day { 0.4, 0.4, 0.75 };
     glm::vec3 now = day + (night - day) * (-sin(time()) * 0.5f + 0.5f);
 
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    if (framebuffer == 0) {
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);    
+    
+    if (external_setup == false) {
+        m_lightpipeline.enable();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, width(), height());
     }
-
-    m_lightpipeline.enable();
 
     // Enable shadow texture
     m_shadowmap.bind_depth_for_reading(SHADOW_TEX_UNIT0);
@@ -232,7 +233,6 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
 
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
-
     
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DIFFUSE, DIFFUSE_TEX_UNIT_INDEX);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, SPECULAR_TEX_UNIT_INDEX);
@@ -256,8 +256,10 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     // Tell scene elements to recursively render themselves
     m_scene->render(this, &m_lightpipeline);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    if (external_setup == false) {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 
     gl_error_check_barrier
 }
@@ -283,17 +285,38 @@ void application::render_shadows(camera* cam, std::vector<directional_light*>& d
 }
 
 void application::render_water(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
-                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat) {
+                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, renderer* water) {
 
+    // Need smaller light passes before main water pass
+    m_lightpipeline.enable();
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_ENABLED, 1.0f);
+    
+    // Reflection pass
     m_reflectionmap.bind_for_writing();
-    // Smaller lighting pass for reflection map
-    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, m_reflectionmap.m_fbo);
 
+    glm::vec4 reflect_normal { 0, 1, 0, -water->m_transform.pos.y };
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, reflect_normal);
+
+    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
+
+    // Refraction pass
+    // m_refractionmap.bind_for_writing();
+
+    // glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y };
+    // m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_HEIGHT, refract_normal);
+
+    // render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
+
+    
+    // Clean up
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_ENABLED, 0.0f);
+
+
+    // Render the water to the main FBO
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width(), height());
-    
+
     glEnable(GL_DEPTH_TEST);
-    // glClear(GL_DEPTH_BUFFER_BIT);
 
     m_reflectionmap.bind_color_for_reading(REFLECT_TEX_UNIT);
 
@@ -305,9 +328,6 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
     m_scene->render(this, &m_waterpipeline);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     gl_error_check_barrier
 }
