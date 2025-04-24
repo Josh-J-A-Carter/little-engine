@@ -28,6 +28,12 @@ void fbo::initialise(int pixel_width, int pixel_height, bool depth, bool color) 
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depth_texture, 0);
+    } else {
+        glGenRenderbuffers(1, &m_depth_texture);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_depth_texture);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, pixel_width, pixel_height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_texture);
     }
 
     if (color) {

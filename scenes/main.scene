@@ -59,16 +59,16 @@
                 type: camera,
                 id: 4,
                 name: cammy,
-                m_pos: [-16.6407, 9.26855, 30.8675],
-                m_forward: [0.176692, 0, -0.984245],
+                m_pos: [2.85764, 100.959, 81.3926],
+                m_forward: [-0.0281262, 0, -0.999544],
                 m_up: [0, 1, 0],
-                m_facing: [0.172201, -0.224003, -0.959233],
+                m_facing: [-0.0148316, -0.849615, -0.527082],
                 m_near: 0.1,
                 m_far: 300,
                 m_fov: 65,
                 m_sensitivity: 0.1,
                 m_speed: 2,
-                m_mouse: [286.087, 12.9445],
+                m_mouse: [297.877, 58.1753],
                 m_shadow_range: 100,
                 children: []
             },
@@ -112,10 +112,10 @@
             {
                 type: renderer,
                 id: 8,
-                name: cube,
+                name: water,
                 m_transform: {
                     type: transform,
-                    pos: [0, 0, 5],
+                    pos: [0, 10, 5],
                     rot: [0, 0, 0]
                 },
                 filename: ./assets/floor.obj,

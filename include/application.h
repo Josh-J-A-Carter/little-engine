@@ -35,7 +35,11 @@ struct application {
         pipeline m_lightpipeline {};
         pipeline m_shadowpipeline {};
         pipeline m_waterpipeline {};
+
         fbo m_shadowmap {};
+        fbo m_reflectionmap {};
+        fbo m_refractionmap {};
+
         texture* m_noise_texture { nullptr };
 
         scene* m_scene { nullptr };
@@ -51,11 +55,14 @@ struct application {
         
         float calc_program_time();
 
-        void render_lighting(camera*, std::vector<directional_light*>&, std::vector<point_light*>&, glm::mat4&, glm::mat4&, glm::mat4&);
+        void render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
+                        glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, GLuint fbo);
 
-        void render_shadows(camera*, std::vector<directional_light*>&, std::vector<point_light*>&, glm::mat4&);
+        void render_shadows(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights, 
+                        glm::mat4& shadow_mat);
 
-        void render_water(camera*, glm::mat4&, glm::mat4&);
+        void render_water(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
+                      glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat);
         
     public:
         const float desired_fps = 1 / 60.0f;

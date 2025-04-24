@@ -82,8 +82,10 @@ void application::create() {
             { GL_FRAGMENT_SHADER, "shaders/water.fs" }
         }, WATER_PIPELINE);
 
-    // Set up shadow map
+    // Set up FBOs
     m_shadowmap.initialise(DEFAULT_SHADOW_MAP_WIDTH, DEFAULT_SHADOW_MAP_HEIGHT, true, false);
+    m_refractionmap.initialise(DEFAULT_REFRACTION_MAP_WIDTH, DEFAULT_REFRACTION_MAP_HEIGHT, true, true);
+    m_reflectionmap.initialise(DEFAULT_REFLECTION_MAP_WIDTH, DEFAULT_REFLECTION_MAP_HEIGHT, false, true);
     
     // Noise texture
     m_noise_texture = new texture(GL_TEXTURE_2D, "assets/noise.png");
@@ -196,23 +198,27 @@ void application::render() {
     render_shadows(cam, d_lights, p_lights, shadow_mat);
 
     // Lighting pass
-    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat);
+    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, 0);
 
     // Water pass
-    render_water(cam, view_mat, proj_mat);
+    render_water(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat);
 }
 
 void application::render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
-                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat) {
+                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, GLuint framebuffer) {
 
     // Skybox colour
     glm::vec3 night { 0.2, 0.2, 0.4 };
     glm::vec3 day { 0.4, 0.4, 0.75 };
     glm::vec3 now = day + (night - day) * (-sin(time()) * 0.5f + 0.5f);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    
+
+    if (framebuffer == 0) {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);    
+        glViewport(0, 0, width(), height());
+    }
+
     m_lightpipeline.enable();
 
     // Enable shadow texture
@@ -221,7 +227,6 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     // Enable noise texture
     m_noise_texture->bind(NOISE_TEX_UNIT);
 
-    glViewport(0, 0, width(), height());
     glClearColor(now.r, now.g, now.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -277,11 +282,24 @@ void application::render_shadows(camera* cam, std::vector<directional_light*>& d
     gl_error_check_barrier
 }
 
-void application::render_water(camera* cam, glm::mat4& view_mat, glm::mat4& proj_mat) {
+void application::render_water(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
+                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat) {
+
+    m_reflectionmap.bind_for_writing();
+    // Smaller lighting pass for reflection map
+    render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, m_reflectionmap.m_fbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width(), height());
+    
     glEnable(GL_DEPTH_TEST);
     // glClear(GL_DEPTH_BUFFER_BIT);
 
+    m_reflectionmap.bind_color_for_reading(REFLECT_TEX_UNIT);
+
     m_waterpipeline.enable();
+
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFLECTION, REFLECT_TEX_UNIT_INDEX);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
