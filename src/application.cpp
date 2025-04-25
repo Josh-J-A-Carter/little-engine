@@ -341,6 +341,8 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_CAMERA, cam->position());
+
     m_waterpipeline.set_uniform(pipeline::UNIFORM_TIME, time());
 
     m_scene->render(this, &m_waterpipeline);

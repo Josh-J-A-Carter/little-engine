@@ -4,17 +4,21 @@ precision highp float;
 
 in vec4 v_clip_pos;
 in vec2 v_texcoord0;
+in vec3 v_world_pos;
+in vec3 v_normal;
 
 uniform sampler2D u_sampler_reflection;
 uniform sampler2D u_sampler_refraction;
 uniform sampler2D u_sampler_dudv;
 
+uniform vec3 u_camera_pos;
+
 uniform float u_time;
 
 out vec4 out_color;
 
-const float distortion_strength = 0.01f;
-const float time_factor = 0.02f;
+const float distortion_strength = 0.0075f;
+const float time_factor = 0.01f;
 
 void main() {
     // out_color = vec4(0.2f, 0.1f, 1.0f, 1.0f);
@@ -40,6 +44,8 @@ void main() {
     vec4 reflect = texture(u_sampler_reflection, reflect_uv);
     vec4 refract = texture(u_sampler_refraction, refract_uv);
 
+    float fresnel = pow(dot(normalize(v_normal), normalize(u_camera_pos - v_world_pos)), 1.25f);
+
     // out_color = mix(reflect, refract, 0.5f);
-    out_color = mix(mix(reflect, refract, 0.5f), vec4(0.6f, 0.6f, 1.0f, 1.0f), 0.2f);
+    out_color = mix(mix(reflect, refract, fresnel), vec4(0.6f, 0.6f, 1.0f, 1.0f), 0.2f);
 }
