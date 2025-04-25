@@ -26,6 +26,8 @@
 #define REFLECT_TEX_UNIT_INDEX  6
 #define REFRACT_TEX_UNIT        GL_TEXTURE7
 #define REFRACT_TEX_UNIT_INDEX  7
+#define NORMAL_TEX_UNIT         GL_TEXTURE8
+#define NORMAL_TEX_UNIT_INDEX   8
 
 const int i = GL_TEXTURE0;
 

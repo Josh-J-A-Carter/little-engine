@@ -2,7 +2,6 @@
 
 in vec3 in_position;
 in vec2 in_texcoord0;
-in vec3 in_normal;
 
 uniform mat4 u_model_matrix;
 uniform mat4 u_view_matrix;
@@ -11,9 +10,9 @@ uniform mat4 u_proj_matrix;
 out vec2 v_texcoord0;
 out vec4 v_clip_pos;
 out vec3 v_world_pos;
-out vec3 v_normal;
+// out vec3 v_normal;
 
-const float tiling_factor = 3.0f;
+const float tiling_factor = 2.0f;
 
 void main() {
     vec4 world_pos = u_model_matrix * vec4(in_position, 1.0f);
@@ -24,5 +23,5 @@ void main() {
 
     v_world_pos = world_pos.xyz;
 
-    v_normal = vec3(0, 1, 0);
+    // v_normal = vec3(0, 1, 0);
 }

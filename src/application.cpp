@@ -91,8 +91,10 @@ void application::create() {
     // Textures
     m_noise_texture = new texture(GL_TEXTURE_2D, "assets/noise.png");
     m_dudv_texture = new texture(GL_TEXTURE_2D, "assets/dudv.png");
+    m_normal_texture = new texture(GL_TEXTURE_2D, "assets/normal.png");
     m_noise_texture->load();
     m_dudv_texture->load();
+    m_normal_texture->load();
 }
 
 void application::destroy() {
@@ -331,17 +333,21 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     m_reflectionmap.bind_color_for_reading(REFLECT_TEX_UNIT);
     m_refractionmap.bind_color_for_reading(REFRACT_TEX_UNIT);
     m_dudv_texture->bind(DUDV_TEX_UNIT);
+    m_normal_texture->bind(NORMAL_TEX_UNIT);
 
     m_waterpipeline.enable();
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFLECTION, REFLECT_TEX_UNIT_INDEX);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFRACTION, REFRACT_TEX_UNIT_INDEX);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DUDV, DUDV_TEX_UNIT_INDEX);
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_NORMAL, NORMAL_TEX_UNIT_INDEX);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_CAMERA, cam->position());
+
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_DIR_LIGHTS, d_lights);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_TIME, time());
 

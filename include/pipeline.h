@@ -29,6 +29,7 @@ struct pipeline {
             UNIFORM_SAMPLER_DUDV,
             UNIFORM_SAMPLER_REFLECTION,
             UNIFORM_SAMPLER_REFRACTION,
+            UNIFORM_SAMPLER_NORMAL,
             UNIFORM_DIR_LIGHTS,
             UNIFORM_POINT_LIGHTS,
             UNIFORM_MATERIAL,

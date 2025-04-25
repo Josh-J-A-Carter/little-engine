@@ -80,7 +80,8 @@ GLint pipeline::get_uniform_location(uniform u) {
     else if (u == UNIFORM_SAMPLER_DUDV) loc = glGetUniformLocation(m_program, "u_sampler_dudv");
     else if (u == UNIFORM_SAMPLER_REFLECTION) loc = glGetUniformLocation(m_program, "u_sampler_reflection");
     else if (u == UNIFORM_SAMPLER_REFRACTION) loc = glGetUniformLocation(m_program, "u_sampler_refraction");
-
+    else if (u == UNIFORM_SAMPLER_NORMAL) loc = glGetUniformLocation(m_program, "u_sampler_normal");
+    
     else if (u == UNIFORM_MATERIAL__AMBIENT_COLOR) loc = glGetUniformLocation(m_program, "u_material.ambient_color");
     else if (u == UNIFORM_MATERIAL__DIFFUSE_COLOR) loc = glGetUniformLocation(m_program, "u_material.diffuse_color");
     else if (u == UNIFORM_MATERIAL__SPECULAR_COLOR) loc = glGetUniformLocation(m_program, "u_material.specular_color");

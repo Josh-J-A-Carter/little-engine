@@ -43,6 +43,7 @@ struct application {
 
         texture* m_noise_texture { nullptr };
         texture* m_dudv_texture { nullptr };
+        texture* m_normal_texture { nullptr };
 
         scene* m_scene { nullptr };
 
