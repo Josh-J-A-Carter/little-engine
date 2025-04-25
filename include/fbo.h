@@ -23,7 +23,7 @@ struct fbo {
     bool m_depth_attachment { false };
     bool m_color_attachment { false };
     
-    void initialise(int pixel_width, int pixel_height, bool depth, bool color);
+    void initialise(int pixel_width, int pixel_height, bool depth, bool color, bool set_boundaries);
     
     void bind_for_writing();
     void bind_depth_for_reading(GLenum texture_unit);

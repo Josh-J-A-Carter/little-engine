@@ -42,6 +42,7 @@ struct application {
         fbo m_refractionmap {};
 
         texture* m_noise_texture { nullptr };
+        texture* m_dudv_texture { nullptr };
 
         scene* m_scene { nullptr };
 

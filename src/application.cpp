@@ -84,13 +84,15 @@ void application::create() {
         }, WATER_PIPELINE);
 
     // Set up FBOs
-    m_shadowmap.initialise(DEFAULT_SHADOW_MAP_WIDTH, DEFAULT_SHADOW_MAP_HEIGHT, true, false);
-    m_refractionmap.initialise(DEFAULT_REFRACTION_MAP_WIDTH, DEFAULT_REFRACTION_MAP_HEIGHT, true, true);
-    m_reflectionmap.initialise(DEFAULT_REFLECTION_MAP_WIDTH, DEFAULT_REFLECTION_MAP_HEIGHT, false, true);
+    m_shadowmap.initialise(DEFAULT_SHADOW_MAP_WIDTH, DEFAULT_SHADOW_MAP_HEIGHT, true, false, true);
+    m_refractionmap.initialise(DEFAULT_REFRACTION_MAP_WIDTH, DEFAULT_REFRACTION_MAP_HEIGHT, true, true, false);
+    m_reflectionmap.initialise(DEFAULT_REFLECTION_MAP_WIDTH, DEFAULT_REFLECTION_MAP_HEIGHT, false, true, false);
     
-    // Noise texture
+    // Textures
     m_noise_texture = new texture(GL_TEXTURE_2D, "assets/noise.png");
+    m_dudv_texture = new texture(GL_TEXTURE_2D, "assets/dudv.png");
     m_noise_texture->load();
+    m_dudv_texture->load();
 }
 
 void application::destroy() {
@@ -293,8 +295,9 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     
     // Reflection pass
     m_reflectionmap.bind_for_writing();
-
-    glm::vec4 reflect_normal { 0, 1, 0, -water->m_transform.pos.y };
+    
+    const float epsilon = 0.0f;
+    glm::vec4 reflect_normal { 0, 1, 0, -(water->m_transform.pos.y + epsilon) };
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, reflect_normal);
 
     float d = 2 * (cam->m_pos.y - water->m_transform.pos.y);
@@ -310,7 +313,7 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     // Refraction pass
     m_refractionmap.bind_for_writing();
 
-    glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y };
+    glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y + epsilon };
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, refract_normal);
 
     render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
@@ -327,14 +330,18 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
 
     m_reflectionmap.bind_color_for_reading(REFLECT_TEX_UNIT);
     m_refractionmap.bind_color_for_reading(REFRACT_TEX_UNIT);
+    m_dudv_texture->bind(DUDV_TEX_UNIT);
 
     m_waterpipeline.enable();
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFLECTION, REFLECT_TEX_UNIT_INDEX);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFRACTION, REFRACT_TEX_UNIT_INDEX);
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DUDV, DUDV_TEX_UNIT_INDEX);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
+
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_TIME, time());
 
     m_scene->render(this, &m_waterpipeline);
 

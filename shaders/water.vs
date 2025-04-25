@@ -8,9 +8,14 @@ uniform mat4 u_model_matrix;
 uniform mat4 u_view_matrix;
 uniform mat4 u_proj_matrix;
 
+out vec2 v_texcoord0;
 out vec4 v_clip_pos;
+
+const float tiling_factor = 4.0f;
 
 void main() {
     v_clip_pos =  u_proj_matrix * u_view_matrix * u_model_matrix * vec4(in_position, 1.0f);
     gl_Position = v_clip_pos;
+
+    v_texcoord0 = in_texcoord0 * tiling_factor;
 }
