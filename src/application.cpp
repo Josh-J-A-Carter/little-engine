@@ -298,13 +298,13 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, reflect_normal);
 
     float d = 2 * (cam->m_pos.y - water->m_transform.pos.y);
-    cam->m_pos -= d;
+    cam->m_pos.y -= d;
     float pitch = cam->m_mouse.y;
     cam->rotate({0, -2 * pitch}, false);
     glm::mat4 reflect_view { cam->get_view_matrix() };
     
     render_lighting(cam, d_lights, p_lights, reflect_view, proj_mat, shadow_mat, true);
-    cam->m_pos += d;
+    cam->m_pos.y += d;
     cam->rotate({0, 2 * pitch}, false);
 
     // Refraction pass
