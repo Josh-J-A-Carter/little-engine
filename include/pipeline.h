@@ -37,7 +37,9 @@ struct pipeline {
             UNIFORM_MATERIAL__DIFFUSE_COLOR,
             UNIFORM_MATERIAL__SPECULAR_COLOR,
             UNIFORM_TIME,
-            UNIFORM_CAMERA,
+            UNIFORM_CAMERA_POS,
+            UNIFORM_CAMERA_FAR,
+            UNIFORM_CAMERA_NEAR,
             UNIFORM_CLIP_PLANE,
             UNIFORM_CLIP_ENABLED
         };

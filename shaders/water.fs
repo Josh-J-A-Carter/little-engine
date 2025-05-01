@@ -5,7 +5,6 @@ precision highp float;
 in vec4 v_clip_pos;
 in vec2 v_texcoord0;
 in vec3 v_world_pos;
-// in vec3 v_normal;
 
 in float v_w;
 
@@ -36,6 +35,8 @@ uniform vec3 u_camera_pos;
 
 uniform float u_time;
 
+uniform float u_cam_far;
+
 out vec4 out_color;
 
 const float distortion_strength = 0.0075f;
@@ -63,33 +64,21 @@ void main() {
     vec2 reflect_uv = 0.5f * vec2(ndc.x, -ndc.y) + 0.5f;
     vec2 refract_uv = 0.5f * vec2(ndc.x, ndc.y) + 0.5f;
 
-
-    // const float near = 0.1f;
-    // const float far = 300.0f;
-    gl_FragDepth = log2(1.0f + v_w) * (2.0f / log2(300.0f + 1.0f) / log2(2.0f)) * 0.5f;
+    gl_FragDepth = log2(1.0f + v_w) * (2.0f / log2(u_cam_far + 1.0f) / log2(2.0f)) * 0.5f;
 
     float floor_depth = texture(u_sampler_depth0, refract_uv).x;
-    float d = texture(u_sampler_depth0, refract_uv).x;
-    float z = (2.0 * 300.0f * 0.1f) / (300.0f + 0.1f - (d * 2.0f - 1.0f) * (300.0f - 0.1f)) / 300.0f;
-    out_color = vec4(floor_depth, floor_depth, floor_depth, 1.0f);
-    return;
-    // float floor_distance = 2.0f * near * far / (far * near - (2.0f * floor_depth - 1.0f) * (far - near));
-
-    // float water_depth = gl_FragCoord.z;
-    // float water_distance = 2.0f * near * far / (far * near - (2.0f * water_depth - 1.0f) * (far - near));
-
-    // float depth = floor_distance - water_distance;
-
-    // out_color = vec4(depth / 10.0f);
-    // return;
-
+    float water_depth = gl_FragDepth;
+    vec3 dist_to_cam = v_world_pos - u_camera_pos;
+    float depth = (floor_depth - water_depth) * length(dist_to_cam);
+    float alpha = clamp(7.5f * depth, 0.0f, 1.0f);
 
     float t = fract(u_time * time_factor);
 
+    float depth_distortion_strength = clamp(depth, 0.0f, 1.0f);
     vec4 dudv1 = texture(u_sampler_dudv, vec2(v_texcoord0.x + t, v_texcoord0.y));
     vec4 dudv2 = texture(u_sampler_dudv, vec2(-v_texcoord0.x + t, v_texcoord0.y + t));
-    vec2 d1 = vec2(2.0f * dudv1.r - 1.0f, 2.0f * dudv1.g - 1.0f) * distortion_strength;
-    vec2 d2 = vec2(2.0f * dudv2.r - 1.0f, 2.0f * dudv2.g - 1.0f) * distortion_strength;
+    vec2 d1 = vec2(2.0f * dudv1.r - 1.0f, 2.0f * dudv1.g - 1.0f) * distortion_strength * depth_distortion_strength;
+    vec2 d2 = vec2(2.0f * dudv2.r - 1.0f, 2.0f * dudv2.g - 1.0f) * distortion_strength * depth_distortion_strength;
     reflect_uv += d1 + d2;
     refract_uv += d1 + d2;
 
@@ -108,5 +97,6 @@ void main() {
 
     // out_color = mix(reflect, refract, 0.5f);
     out_color = mix(mix(reflect, refract, fresnel), vec4(0.6f, 0.6f, 1.0f, 1.0f), 0.2f);
-    if (u_num_dir_lights > 0) out_color += calc_light(u_dir_lights[0], out_color.rgb, normal);
+    if (u_num_dir_lights > 0) out_color += calc_light(u_dir_lights[0], out_color.rgb, normal) * depth_distortion_strength;
+    out_color = vec4(out_color.xyz, alpha);
 }

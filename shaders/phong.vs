@@ -18,7 +18,6 @@ out vec2 v_texcoord0;
 out vec3 v_normal;
 out vec4 v_lightspace_pos;
 
-out vec4 v_test;
 out float v_w;
 
 out float v_clip;

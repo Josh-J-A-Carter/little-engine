@@ -88,7 +88,9 @@ GLint pipeline::get_uniform_location(uniform u) {
 
     else if (u == UNIFORM_TIME) loc = glGetUniformLocation(m_program, "u_time");
 
-    else if (u == UNIFORM_CAMERA) loc = glGetUniformLocation(m_program, "u_camera_pos");
+    else if (u == UNIFORM_CAMERA_POS) loc = glGetUniformLocation(m_program, "u_camera_pos");
+    else if (u == UNIFORM_CAMERA_NEAR) loc = glGetUniformLocation(m_program, "u_cam_near");
+    else if (u == UNIFORM_CAMERA_FAR) loc = glGetUniformLocation(m_program, "u_cam_far");
 
     else if (u == UNIFORM_CLIP_PLANE) loc = glGetUniformLocation(m_program, "u_clip_plane");
     else if (u == UNIFORM_CLIP_ENABLED) loc = glGetUniformLocation(m_program, "u_clip_enabled");

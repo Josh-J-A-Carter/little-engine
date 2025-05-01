@@ -37,7 +37,6 @@ in vec2 v_texcoord0;
 in vec3 v_normal;
 in vec4 v_lightspace_pos;
 
-in vec4 v_test;
 in float v_w;
 
 in float v_clip;
@@ -56,6 +55,8 @@ uniform sampler2D u_sampler_depth0;
 uniform sampler2D u_sampler_noise;
 
 uniform vec3 u_camera_pos;
+
+uniform float u_cam_far;
 
 // Output
 out vec4 out_color;
@@ -126,17 +127,7 @@ void main() {
     // Discard fragment if necessary
     if (v_clip < 0.0f) discard;
 
-    //////// For some reason, v_test.z == v_test.water (it seems)
-    //////// This is causing perspective division to give a depth of 1.0 for everything? I think????
-    //////// But then why is everything rendered correctly? Wouldn't there be issues with depth testing?
-    // float z = v_test.z / 300.0f;
-    // float z = v_test.w / 300.0f; //v_world_pos.z / 50.0f;
-    // float z = (2.0 * 300.0f * 0.1f) / (300.0f + 0.1f - v_test.w * (300.0f - 0.1f));
-    // float z = (2.0 * 300.0f * 0.1f) / (300.0f + 0.1f - (gl_FragCoord.z * 2.0f - 1.0f) * (300.0f - 0.1f)) / 300.0f;
-    gl_FragDepth = log2(1.0f + v_w) * (2.0f / log2(300.0f + 1.0f) / log2(2.0f)) * 0.5f;
-    // float z = gl_FragDepth;
-    // out_color = vec4(z, z, z, 1.0f);
-    // return;
+    gl_FragDepth = log2(1.0f + v_w) * (2.0f / log2(u_cam_far + 1.0f) / log2(2.0f)) * 0.5f;
 
     vec4 total_light = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 

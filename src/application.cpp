@@ -248,7 +248,8 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     m_lightpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SHADOW0_MAT, shadow_mat);
 
-    m_lightpipeline.set_uniform(pipeline::UNIFORM_CAMERA, cam->position());
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_CAMERA_POS, cam->position());
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_CAMERA_FAR, cam->m_far);
 
     // Miscellaneous
     m_lightpipeline.set_uniform(pipeline::UNIFORM_TIME, time());
@@ -329,6 +330,9 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
 
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     m_reflectionmap.bind_color_for_reading(REFLECT_TEX_UNIT);
     m_refractionmap.bind_color_for_reading(REFRACT_TEX_UNIT);
     m_refractionmap.bind_depth_for_reading(DEPTH_TEX_UNIT0);
@@ -346,13 +350,16 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);
 
-    m_waterpipeline.set_uniform(pipeline::UNIFORM_CAMERA, cam->position());
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_CAMERA_POS, cam->position());
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_CAMERA_FAR, cam->m_far);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_DIR_LIGHTS, d_lights);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_TIME, time());
 
     m_scene->render(this, &m_waterpipeline);
+
+    glDisable(GL_BLEND);
 
     gl_error_check_barrier
 }
