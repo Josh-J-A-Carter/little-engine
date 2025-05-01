@@ -7,6 +7,8 @@ in vec2 v_texcoord0;
 in vec3 v_world_pos;
 // in vec3 v_normal;
 
+in float v_w;
+
 const int MAX_DIR_LIGHTS = 10;
 
 struct light {
@@ -26,6 +28,7 @@ uniform dir_light u_dir_lights[MAX_DIR_LIGHTS];
 
 uniform sampler2D u_sampler_reflection;
 uniform sampler2D u_sampler_refraction;
+uniform sampler2D u_sampler_depth0;
 uniform sampler2D u_sampler_dudv;
 uniform sampler2D u_sampler_normal;
 
@@ -56,13 +59,30 @@ vec4 calc_light(dir_light d_light, vec3 base_color, vec3 normal) {
 }
 
 void main() {
-    // out_color = vec4(0.2f, 0.1f, 1.0f, 1.0f);
-    // vec4 reflect = texture(u_sampler_reflection, v_texcoord0);
-    // vec4 refract = texture(u_sampler_refraction, v_texcoord0);
-
     vec2 ndc = v_clip_pos.xy / v_clip_pos.w;
     vec2 reflect_uv = 0.5f * vec2(ndc.x, -ndc.y) + 0.5f;
     vec2 refract_uv = 0.5f * vec2(ndc.x, ndc.y) + 0.5f;
+
+
+    // const float near = 0.1f;
+    // const float far = 300.0f;
+    gl_FragDepth = log2(1.0f + v_w) * (2.0f / log2(300.0f + 1.0f) / log2(2.0f)) * 0.5f;
+
+    float floor_depth = texture(u_sampler_depth0, refract_uv).x;
+    float d = texture(u_sampler_depth0, refract_uv).x;
+    float z = (2.0 * 300.0f * 0.1f) / (300.0f + 0.1f - (d * 2.0f - 1.0f) * (300.0f - 0.1f)) / 300.0f;
+    out_color = vec4(floor_depth, floor_depth, floor_depth, 1.0f);
+    return;
+    // float floor_distance = 2.0f * near * far / (far * near - (2.0f * floor_depth - 1.0f) * (far - near));
+
+    // float water_depth = gl_FragCoord.z;
+    // float water_distance = 2.0f * near * far / (far * near - (2.0f * water_depth - 1.0f) * (far - near));
+
+    // float depth = floor_distance - water_distance;
+
+    // out_color = vec4(depth / 10.0f);
+    // return;
+
 
     float t = fract(u_time * time_factor);
 

@@ -85,7 +85,7 @@ void application::create() {
 
     // Set up FBOs
     m_shadowmap.initialise(DEFAULT_SHADOW_MAP_WIDTH, DEFAULT_SHADOW_MAP_HEIGHT, true, false, true);
-    m_refractionmap.initialise(DEFAULT_REFRACTION_MAP_WIDTH, DEFAULT_REFRACTION_MAP_HEIGHT, true, true, false);
+    m_refractionmap.initialise(DEFAULT_REFRACTION_MAP_WIDTH, DEFAULT_REFRACTION_MAP_HEIGHT, true, true, true);
     m_reflectionmap.initialise(DEFAULT_REFLECTION_MAP_WIDTH, DEFAULT_REFLECTION_MAP_HEIGHT, false, true, false);
     
     // Textures
@@ -227,7 +227,7 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     }
 
     // Enable shadow texture
-    m_shadowmap.bind_depth_for_reading(SHADOW_TEX_UNIT0);
+    m_shadowmap.bind_depth_for_reading(DEPTH_TEX_UNIT0);
 
     // Enable noise texture
     m_noise_texture->bind(NOISE_TEX_UNIT);
@@ -240,7 +240,7 @@ void application::render_lighting(camera* cam, std::vector<directional_light*>& 
     
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DIFFUSE, DIFFUSE_TEX_UNIT_INDEX);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SPECULAR, SPECULAR_TEX_UNIT_INDEX);
-    m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_SHADOW0, SHADOW_TEX_UNIT0_INDEX);
+    m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DEPTH0, DEPTH_TEX_UNIT0_INDEX);
     m_lightpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_NOISE, NOISE_TEX_UNIT_INDEX);
     
     // Camera uniforms
@@ -298,8 +298,7 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     // Reflection pass
     m_reflectionmap.bind_for_writing();
     
-    const float epsilon = 0.0f;
-    glm::vec4 reflect_normal { 0, 1, 0, -(water->m_transform.pos.y + epsilon) };
+    glm::vec4 reflect_normal { 0, 1, 0, -(water->m_transform.pos.y) };
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, reflect_normal);
 
     float d = 2 * (cam->m_pos.y - water->m_transform.pos.y);
@@ -315,7 +314,7 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     // Refraction pass
     m_refractionmap.bind_for_writing();
 
-    glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y + epsilon };
+    glm::vec4 refract_normal { 0, -1, 0, water->m_transform.pos.y };
     m_lightpipeline.set_uniform(pipeline::UNIFORM_CLIP_PLANE, refract_normal);
 
     render_lighting(cam, d_lights, p_lights, view_mat, proj_mat, shadow_mat, true);
@@ -332,6 +331,7 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
 
     m_reflectionmap.bind_color_for_reading(REFLECT_TEX_UNIT);
     m_refractionmap.bind_color_for_reading(REFRACT_TEX_UNIT);
+    m_refractionmap.bind_depth_for_reading(DEPTH_TEX_UNIT0);
     m_dudv_texture->bind(DUDV_TEX_UNIT);
     m_normal_texture->bind(NORMAL_TEX_UNIT);
 
@@ -341,6 +341,7 @@ void application::render_water(camera* cam, std::vector<directional_light*>& d_l
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_REFRACTION, REFRACT_TEX_UNIT_INDEX);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DUDV, DUDV_TEX_UNIT_INDEX);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_NORMAL, NORMAL_TEX_UNIT_INDEX);
+    m_waterpipeline.set_uniform(pipeline::UNIFORM_SAMPLER_DEPTH0, DEPTH_TEX_UNIT0_INDEX);
 
     m_waterpipeline.set_uniform(pipeline::UNIFORM_VIEW_MAT, view_mat);
     m_waterpipeline.set_uniform(pipeline::UNIFORM_PROJ_MAT, proj_mat);

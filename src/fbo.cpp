@@ -72,7 +72,7 @@ void fbo::initialise(int pixel_width, int pixel_height, bool depth, bool color, 
 }
 
 void fbo::bind_for_writing() {
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glViewport(0, 0, m_pixel_width, m_pixel_height);
 }
 

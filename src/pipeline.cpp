@@ -75,7 +75,7 @@ GLint pipeline::get_uniform_location(uniform u) {
 
     else if (u == UNIFORM_SAMPLER_DIFFUSE) loc = glGetUniformLocation(m_program, "u_sampler_diffuse");
     else if (u == UNIFORM_SAMPLER_SPECULAR) loc = glGetUniformLocation(m_program, "u_sampler_specular");
-    else if (u == UNIFORM_SAMPLER_SHADOW0) loc = glGetUniformLocation(m_program, "u_sampler_shadow0");
+    else if (u == UNIFORM_SAMPLER_DEPTH0) loc = glGetUniformLocation(m_program, "u_sampler_depth0");
     else if (u == UNIFORM_SAMPLER_NOISE) loc = glGetUniformLocation(m_program, "u_sampler_noise");
     else if (u == UNIFORM_SAMPLER_DUDV) loc = glGetUniformLocation(m_program, "u_sampler_dudv");
     else if (u == UNIFORM_SAMPLER_REFLECTION) loc = glGetUniformLocation(m_program, "u_sampler_reflection");

@@ -37,6 +37,9 @@ in vec2 v_texcoord0;
 in vec3 v_normal;
 in vec4 v_lightspace_pos;
 
+in vec4 v_test;
+in float v_w;
+
 in float v_clip;
 
 // Lighting data
@@ -49,7 +52,7 @@ uniform point_light u_point_lights[MAX_POINT_LIGHTS];
 uniform material u_material;
 uniform sampler2D u_sampler_diffuse;
 uniform sampler2D u_sampler_specular;
-uniform sampler2D u_sampler_shadow0;
+uniform sampler2D u_sampler_depth0;
 uniform sampler2D u_sampler_noise;
 
 uniform vec3 u_camera_pos;
@@ -94,10 +97,10 @@ float calc_dir_light_shadow(vec3 light_direction) {
     float diffuse = clamp(dot(normalize(v_normal), -normalize(light_direction)), 0.0f, 1.0f);
     // float bias = 0.0025f;
     float bias = mix(0.025f, 0.001f, diffuse);
-    // return texture(u_sampler_shadow0, uv).x;
+    // return texture(u_sampler_depth0, uv).x;
 
     float shadow = 0.0f;
-    ivec2 t = textureSize(u_sampler_shadow0, 0);
+    ivec2 t = textureSize(u_sampler_depth0, 0);
     vec2 shadow_texel_size = vec2(1.0f / float(t.x), 1.0f / float(t.y));
 
     float rad = 2.0f;
@@ -107,7 +110,7 @@ float calc_dir_light_shadow(vec3 light_direction) {
 
     for (float x = -rad ; x <= rad ; x += 1.0f) {
         for (float y = -rad ; y <= rad ; y += 1.0f) {
-            float depth = texture(u_sampler_shadow0, uv + vec2(x, y) * shadow_texel_size).x;
+            float depth = texture(u_sampler_depth0, uv + vec2(x, y) * shadow_texel_size).x;
             shadow += z - bias > depth ? 0.0f : 1.0f;
         }
     }
@@ -122,7 +125,18 @@ vec4 calc_dir_light(dir_light light) {
 void main() {
     // Discard fragment if necessary
     if (v_clip < 0.0f) discard;
-    
+
+    //////// For some reason, v_test.z == v_test.water (it seems)
+    //////// This is causing perspective division to give a depth of 1.0 for everything? I think????
+    //////// But then why is everything rendered correctly? Wouldn't there be issues with depth testing?
+    // float z = v_test.z / 300.0f;
+    // float z = v_test.w / 300.0f; //v_world_pos.z / 50.0f;
+    // float z = (2.0 * 300.0f * 0.1f) / (300.0f + 0.1f - v_test.w * (300.0f - 0.1f));
+    // float z = (2.0 * 300.0f * 0.1f) / (300.0f + 0.1f - (gl_FragCoord.z * 2.0f - 1.0f) * (300.0f - 0.1f)) / 300.0f;
+    gl_FragDepth = log2(1.0f + v_w) * (2.0f / log2(300.0f + 1.0f) / log2(2.0f)) * 0.5f;
+    // float z = gl_FragDepth;
+    // out_color = vec4(z, z, z, 1.0f);
+    // return;
 
     vec4 total_light = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
