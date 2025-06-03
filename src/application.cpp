@@ -211,7 +211,7 @@ void application::render() {
 }
 
 void application::render_lighting(camera* cam, std::vector<directional_light*>& d_lights, std::vector<point_light*>& p_lights,
-                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, bool external_setup = false) {
+                                    glm::mat4& view_mat, glm::mat4& proj_mat, glm::mat4& shadow_mat, bool external_setup) {
 
     // Skybox colour
     glm::vec3 night { 0.2, 0.2, 0.4 };
