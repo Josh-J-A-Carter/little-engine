@@ -8,5 +8,7 @@ emcc src/stb_image.cpp src/texture.cpp src/utilities.cpp src/pipeline.cpp src/se
         -L ./lib/wasm/ -lzlibstatic -lassimp \
         -s USE_SDL=2 -s FULL_ES3=1 -s WASM=1 -sINITIAL_MEMORY=106168320 \
         --preload-file assets --preload-file shaders --preload-file scenes \
-        -Wno-pointer-arith -fpermissive
+        -Wno-pointer-arith -fpermissive \
+        -sEXPORTED_FUNCTIONS=_main,_remove_focus \
+        -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
         # -D NDEBUG \
