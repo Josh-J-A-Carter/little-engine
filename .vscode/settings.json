@@ -68,5 +68,6 @@
         "bitset": "cpp",
         "codecvt": "cpp",
         "regex": "cpp"
-    }
+    },
+    "liveServer.settings.port": 5501
 }

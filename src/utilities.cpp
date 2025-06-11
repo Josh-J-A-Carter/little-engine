@@ -7,15 +7,15 @@
 #include "utilities.h"
 
 void display_gl_version_info() {
-    std::cerr << glGetString(GL_VENDOR) << std::endl;
-    std::cerr << glGetString(GL_RENDERER) << std::endl;
-    std::cerr << glGetString(GL_VERSION) << std::endl;
-    std::cerr << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    std::cout << glGetString(GL_VENDOR) << std::endl;
+    std::cout << glGetString(GL_RENDERER) << std::endl;
+    std::cout << glGetString(GL_VERSION) << std::endl;
+    std::cout << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
     int texture_units;
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
 
-    std::cerr << "Texture units: " << texture_units << std::endl;
+    std::cout << "Texture units: " << texture_units << std::endl;
 }
 
 void clear_gl_errors() {
