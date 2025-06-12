@@ -98,9 +98,11 @@ inline void run<camera>(application* app, scene* scene, scene_node* this_node, c
 
     if (!escaped && !app->unfocused) {
         float speed { cam->m_speed * -0.1f * dt / app->desired_fps };
-
+    #ifndef __EMSCRIPTEN__
         if (state[SDL_SCANCODE_LCTRL]) speed *= 3;
-
+    #else
+        speed *= 2;
+    #endif
         if (state[SDL_SCANCODE_W]) cam->translate(cam->forward() * speed);
         else if (state[SDL_SCANCODE_S]) cam->translate(cam->forward() * -speed);
 

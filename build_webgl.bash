@@ -10,7 +10,7 @@ emcc src/stb_image.cpp src/texture.cpp src/utilities.cpp src/pipeline.cpp src/se
         -DNDEBUG \
         -Wno-pointer-arith -fpermissive \
         -sUSE_SDL=2 -sFULL_ES3=1 -sWASM=1 -sINITIAL_MEMORY=106168320 \
-        -sEXPORTED_FUNCTIONS=_main,_remove_focus \
+        -sEXPORTED_FUNCTIONS=_main,_focusin,_focusout \
         -sEXPORT_ES6 \
         -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
         -sMODULARIZE=1 -sEXPORT_NAME=createLittleEngine

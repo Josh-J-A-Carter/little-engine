@@ -71,20 +71,6 @@ void loop() {
    }
 }
 
-#ifdef __EMSCRIPTEN__
-bool focus_in(int eventType, const EmscriptenFocusEvent* focusEvent, void* userData) {
-    g_app.unfocused = false;
-    // std::cout << "Focus in" << std::endl;
-    return false;
-}
-
-bool focus_out(int eventType, const EmscriptenFocusEvent* focusEvent, void* userData) {
-    g_app.unfocused = true;
-    // std::cout << "Focus out" << std::endl;
-    return false;
-}
-#endif
-
 int main(int argv, char** args)  {
     g_app.create();
     void* context = g_app.window();
@@ -94,8 +80,6 @@ int main(int argv, char** args)  {
 
 #ifdef __EMSCRIPTEN__
     int fps = 0;
-    emscripten_set_focusin_callback("#canvas.emscripten", (void*) nullptr, false, focus_in);
-    emscripten_set_focusout_callback("#canvas.emscripten", (void*) nullptr, false, focus_out);
     emscripten_set_main_loop_arg(loop_instance, context, fps, true);
 #else
     loop();
@@ -104,6 +88,14 @@ int main(int argv, char** args)  {
     return EXIT_SUCCESS;
 }
 
-extern "C" void remove_focus() {
-    g_app.unfocused = true;
+extern "C" {
+
+    void focusout() {
+        g_app.unfocused = true;
+    }
+
+    void focusin() {
+        g_app.unfocused = false;
+    }
+
 }
